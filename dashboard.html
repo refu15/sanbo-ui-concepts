@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SANBO AI — Dashboard Design Concepts</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter','Noto Sans JP',system-ui,sans-serif; background:#f8f9fb; color:#1a1a2e; }
+  .tab-nav { display:flex; gap:0; background:#1a1a2e; padding:8px 16px; overflow-x:auto; position:sticky; top:0; z-index:100; }
+  .tab-btn { padding:8px 14px; border:none; background:transparent; color:#888; cursor:pointer; font-size:12px; white-space:nowrap; border-radius:6px 6px 0 0; }
+  .tab-btn.active { background:#fff; color:#1a1a2e; font-weight:600; }
+  .concept { display:none; }
+  .concept.active { display:block; }
+  .desc { padding:20px; margin:20px; background:#f0faf6; border-radius:8px; border-left:4px solid #1a1a2e; }
+  .desc h3 { font-size:16px; margin-bottom:8px; }
+  .desc p { font-size:13px; color:#555; line-height:1.6; }
+  .mock { border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin:20px; background:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.04); }
+  .mock-header { background:#fff; padding:10px 20px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; height:48px; }
+  .mock-logo { font-size:18px; font-weight:700; color:#1a1a2e; letter-spacing:1px; }
+  .nav-item { padding:6px 12px; border-radius:6px; font-size:13px; color:#888; text-decoration:none; }
+  .nav-item.active { background:#f0f0f0; color:#1a1a2e; font-weight:600; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:18px; }
+  .stat { font-size:28px; font-weight:700; }
+  .stat-label { font-size:12px; color:#888; margin-top:4px; }
+  .section-title { font-size:15px; font-weight:600; margin-bottom:12px; }
+</style>
+</head>
+<body>
+
+<div class="tab-nav">
+  <span style="color:#fff;font-weight:700;padding:8px 12px;font-size:14px;">SANBO AI Dashboard案</span>
+  <button class="tab-btn active" onclick="show(0)">案1: KPIファースト</button>
+  <button class="tab-btn" onclick="show(1)">案2: 参謀ブリーフ</button>
+  <button class="tab-btn" onclick="show(2)">案3: タスクセンター</button>
+  <button class="tab-btn" onclick="show(3)">案4: フィードライン</button>
+  <button class="tab-btn" onclick="show(4)">案5: ワンアクション</button>
+  <button class="tab-btn" onclick="show(5)">案6: プロジェクトマップ</button>
+  <button class="tab-btn" onclick="show(6)">案7: 社長レポート</button>
+  <button class="tab-btn" onclick="show(7)">案8: コマンドセンター</button>
+  <button class="tab-btn" onclick="show(8)">案9: カレンダー統合</button>
+  <button class="tab-btn" onclick="show(9)">案10: ミニマル</button>
+</div>
+
+<!-- ===== 案1: KPIファースト ===== -->
+<div class="concept active" id="c0">
+  <div class="desc">
+    <h3>案1: KPIファースト — 数字が最初に目に入る</h3>
+    <p>ログイン直後に今月のKPI（売上/実行数/コスト削減額/活用度）が大きく表示。下にアクション一覧とクイック指示。</p>
+    <p style="color:#28a745;margin-top:6px;">◆ 社長が「今どうなってるか」を一瞬で把握できる</p>
+  </div>
+  <div class="mock">
+    <div class="mock-header"><span class="mock-logo">SANBO AI</span><span class="nav-item active">▣ ダッシュボード</span><span class="nav-item">◻ チャット</span><span class="nav-item">▨ デスク</span><span class="nav-item">▦ ボード</span><span class="nav-item">◷ タイムライン</span></div>
+    <div style="padding:24px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
+        <div class="card" style="border-top:3px solid #1a1a2e;"><div class="stat">¥28.5M</div><div class="stat-label">今月売上</div></div>
+        <div class="card" style="border-top:3px solid #4285f4;"><div class="stat">47</div><div class="stat-label">AI実行回数</div></div>
+        <div class="card" style="border-top:3px solid #28a745;"><div class="stat">¥1.2M</div><div class="stat-label">推定コスト削減</div></div>
+        <div class="card" style="border-top:3px solid #fbbc05;"><div class="stat" style="color:#28a745;">HIGH</div><div class="stat-label">活用度</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+        <div class="card">
+          <div class="section-title">最近のアクション</div>
+          <div style="font-size:13px;padding:8px 0;border-bottom:1px solid #f5f5f5;">◆ 月次報告書を作成 <span style="float:right;color:#28a745;font-size:11px;">完了</span></div>
+          <div style="font-size:13px;padding:8px 0;border-bottom:1px solid #f5f5f5;">▧ 橋本さんへメール <span style="float:right;color:#fbbc05;font-size:11px;">承認待ち</span></div>
+          <div style="font-size:13px;padding:8px 0;">▥ 経費データ分析 <span style="float:right;color:#4285f4;font-size:11px;">実行中</span></div>
+        </div>
+        <div class="card">
+          <div class="section-title">クイック指示</div>
+          <div style="padding:10px;background:#1a1a2e;color:#fff;border-radius:6px;text-align:center;font-size:13px;margin-bottom:8px;cursor:pointer;">◆ 参謀AIに指示</div>
+          <div style="padding:6px 10px;background:#fafbfc;border:1px solid #e5e7eb;border-radius:4px;font-size:12px;margin-bottom:4px;">▤ 報告書を作成</div>
+          <div style="padding:6px 10px;background:#fafbfc;border:1px solid #e5e7eb;border-radius:4px;font-size:12px;margin-bottom:4px;">▣ スライドを作成</div>
+          <div style="padding:6px 10px;background:#fafbfc;border:1px solid #e5e7eb;border-radius:4px;font-size:12px;">▧ メールを送信</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 案2: 参謀ブリーフ ===== -->
+<div class="concept" id="c1">
+  <div class="desc">
+    <h3>案2: 参謀ブリーフ — 毎朝の報告書スタイル</h3>
+    <p>「おはようございます。本日のブリーフです」で始まる、AIが生成した今日のサマリー。承認待ち、進捗、提案が自然言語で書かれている。</p>
+    <p style="color:#28a745;margin-top:6px;">◆ 参謀感が最も強い。社長は読むだけでいい</p>
+  </div>
+  <div class="mock">
+    <div class="mock-header"><span class="mock-logo">SANBO AI</span></div>
+    <div style="max-width:700px;margin:0 auto;padding:32px 24px;">
+      <div style="font-size:12px;color:#888;">2026年4月9日（水）09:00</div>
+      <h2 style="font-size:20px;margin-top:8px;">おはようございます。本日のブリーフです。</h2>
+      <div style="margin-top:20px;padding:16px;background:#fafbfc;border-radius:8px;border-left:3px solid #1a1a2e;">
+        <div style="font-size:14px;font-weight:500;margin-bottom:8px;">// 要対応</div>
+        <div style="font-size:13px;color:#555;line-height:1.8;">
+          ・A社への提案書が<span style="color:#dc3545;font-weight:500;">承認待ち</span>です（昨日作成）<br>
+          ・月次経費レポートの締切が<span style="font-weight:500;">明後日</span>です<br>
+          ・橋本さんからのメール返信が未処理です
+        </div>
+      </div>
+      <div style="margin-top:16px;padding:16px;background:#fafbfc;border-radius:8px;border-left:3px solid #4285f4;">
+        <div style="font-size:14px;font-weight:500;margin-bottom:8px;">>> 昨日の成果</div>
+        <div style="font-size:13px;color:#555;line-height:1.8;">
+          ・営業報告書を作成しました（5ページ、Slide形式）<br>
+          ・売上データの分析が完了（前月比+12%）<br>
+          ・3件のメール下書きを作成しました
+        </div>
+      </div>
+      <div style="margin-top:16px;padding:16px;background:#fafbfc;border-radius:8px;border-left:3px solid #28a745;">
+        <div style="font-size:14px;font-weight:500;margin-bottom:8px;">-> 本日の提案</div>
+        <div style="font-size:13px;color:#555;line-height:1.8;">
+          ・B社の競合分析を先に進めることをお勧めします<br>
+          ・来週の取締役会資料の着手をお勧めします
+        </div>
+      </div>
+      <div style="margin-top:20px;text-align:center;">
+        <span style="display:inline-block;padding:10px 24px;background:#1a1a2e;color:#fff;border-radius:6px;font-size:13px;cursor:pointer;">承認待ちを確認する</span>
+        <span style="display:inline-block;padding:10px 24px;background:#fafbfc;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;margin-left:8px;cursor:pointer;">チャットで指示する</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 案3: タスクセンター ===== -->
+<div class="concept" id="c2">
+  <div class="desc">
+    <h3>案3: タスクセンター — やるべきことが全部見える</h3>
+    <p>承認待ち・進行中・完了がカード形式で並ぶ。カンバンのライト版。</p>
+    <p style="color:#28a745;margin-top:6px;">◆ 「今何をすべきか」が明確。アクション駆動型</p>
+  </div>
+  <div class="mock">
+    <div class="mock-header"><span class="mock-logo">SANBO AI</span></div>
+    <div style="padding:24px;">
+      <div style="display:flex;gap:8px;margin-bottom:20px;">
+        <span style="padding:6px 16px;background:#dc3545;color:#fff;border-radius:16px;font-size:12px;font-weight:500;">△ 承認待ち 2</span>
+        <span style="padding:6px 16px;background:#4285f4;color:#fff;border-radius:16px;font-size:12px;">◇ 実行中 1</span>
+        <span style="padding:6px 16px;background:#e5e7eb;color:#555;border-radius:16px;font-size:12px;">■ 今日完了 3</span>
+      </div>
+      <div class="section-title">△ 承認が必要</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div class="card" style="border-left:3px solid #dc3545;">
+          <div style="font-size:14px;font-weight:500;">A社提案書のメール送信</div>
+          <div style="font-size:12px;color:#888;margin-top:4px;">▧ Gmail -- 30分前に作成</div>
+          <div style="margin-top:8px;display:flex;gap:6px;">
+            <span style="padding:4px 12px;background:#28a745;color:#fff;border-radius:4px;font-size:11px;cursor:pointer;">承認</span>
+            <span style="padding:4px 12px;background:#f5f5f5;border:1px solid #ddd;border-radius:4px;font-size:11px;cursor:pointer;">確認</span>
+          </div>
+        </div>
+        <div class="card" style="border-left:3px solid #dc3545;">
+          <div style="font-size:14px;font-weight:500;">共有ドライブのファイル削除</div>
+          <div style="font-size:12px;color:#888;margin-top:4px;">▷ Drive -- 1時間前</div>
+          <div style="margin-top:8px;display:flex;gap:6px;">
+            <span style="padding:4px 12px;background:#28a745;color:#fff;border-radius:4px;font-size:11px;cursor:pointer;">承認</span>
+            <span style="padding:4px 12px;background:#dc3545;color:#fff;border-radius:4px;font-size:11px;cursor:pointer;">拒否</span>
+          </div>
+        </div>
+      </div>
+      <div class="section-title">◇ 進行中</div>
+      <div class="card" style="border-left:3px solid #4285f4;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><div style="font-size:14px;font-weight:500;">月次経費レポート作成中</div><div style="font-size:12px;color:#888;">▥ 分析 -- 残り約2分</div></div>
+          <div style="width:60px;height:6px;background:#e5e7eb;border-radius:3px;"><div style="width:70%;height:6px;background:#4285f4;border-radius:3px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 案4: フィードライン ===== -->
+<div class="concept" id="c3">
+  <div class="desc">
+    <h3>案4: フィードライン — SNS風の時系列フィード</h3>
+    <p>AIの活動が時系列で流れる。いいね/コメントの代わりに承認/拒否ボタン。X(Twitter)やSlackのような体験。</p>
+    <p style="color:#28a745;margin-top:6px;">◆ 「何が起きているか」がリアルタイムで分かる</p>
+  </div>
+  <div class="mock">
+    <div class="mock-header"><span class="mock-logo">SANBO AI</span></div>
+    <div style="max-width:600px;margin:0 auto;padding:20px;">
+      <div style="padding:10px 16px;background:#1a1a2e;color:#fff;border-radius:8px;margin-bottom:16px;text-align:center;font-size:13px;cursor:pointer;">◆ 参謀AIに指示する</div>
+      <div style="border-left:2px solid #e5e7eb;padding-left:16px;margin-left:10px;">
+        <div style="position:relative;margin-bottom:14px;">
+          <div style="position:absolute;left:-23px;top:4px;width:10px;height:10px;border-radius:50%;background:#28a745;border:2px solid #fff;"></div>
+          <div class="card" style="padding:12px;">
+            <div style="font-size:11px;color:#888;">09:15 -- ◆ 参謀AI</div>
+            <div style="font-size:13px;margin-top:4px;">月次営業報告書（Slide形式・5ページ）を作成しました</div>
+            <div style="margin-top:6px;display:flex;gap:6px;">
+              <span style="padding:3px 10px;background:#f0faf6;color:#28a745;border-radius:12px;font-size:10px;">■ 完了</span>
+              <span style="padding:3px 10px;background:#fafbfc;border:1px solid #e5e7eb;border-radius:12px;font-size:10px;cursor:pointer;">開く</span>
+            </div>
+          </div>
+        </div>
+        <div style="position:relative;margin-bottom:14px;">
+          <div style="position:absolute;left:-23px;top:4px;width:10px;height:10px;border-radius:50%;background:#fbbc05;border:2px solid #fff;"></div>
+          <div class="card" style="padding:12px;border:1px solid #fbbc05;">
+            <div style="font-size:11px;color:#888;">09:20 -- ◆ 参謀AI</div>
+            <div style="font-size:13px;margin-top:4px;">橋本さんへのメール送信を準備しました。承認をお願いします。</div>
+            <div style="margin-top:6px;display:flex;gap:6px;">
+              <span style="padding:4px 12px;background:#28a745;color:#fff;border-radius:4px;font-size:11px;cursor:pointer;">承認</span>
+              <span style="padding:4px 12px;background:#fafbfc;border:1px solid #ddd;border-radius:4px;font-size:11px;cursor:pointer;">拒否</span>
+              <span style="padding:4px 12px;background:#fafbfc;border:1px solid #ddd;border-radius:4px;font-size:11px;cursor:pointer;">確認</span>
+            </div>
+          </div>
+        </div>
+        <div style="position:relative;">
+          <div style="position:absolute;left:-23px;top:4px;width:10px;height:10px;border-radius:50%;background:#4285f4;border:2px solid #fff;"></div>
+          <div class="card" style="padding:12px;">
+            <div style="font-size:11px;color:#888;">09:10 -- ◆ 参謀AI</div>
+            <div style="font-size:13px;margin-top:4px;">Google Sheetsから売上データを読み取りました</div>
+            <span style="padding:3px 10px;background:#f0faf6;color:#28a745;border-radius:12px;font-size:10px;">■ 完了</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 案5: ワンアクション ===== -->
+<div class="concept" id="c4">
+  <div class="desc">
+    <h3>案5: ワンアクション — 最重要タスク1つだけ表示</h3>
+    <p>「今あなたがやるべきことは1つだけ」。承認待ちがあればそれ、なければ提案。究極のシンプル。</p>
+    <p style="color:#28a745;margin-top:6px;">◆ 決裁者の時間を最小限に。1クリックで完了</p>
+  </div>
+  <div class="mock">
+    <div class="mock-header"><span class="mock-logo">SANBO AI</span></div>
+    <div style="display:flex;align-items:center;justify-content:center;min-height:400px;padding:40px;">
+      <div style="text-align:center;max-width:500px;">
+        <div style="font-size:12px;color:#888;">承認が必要です</div>
+        <h2 style="font-size:22px;margin-top:8px;">A社向け提案書のメール送信</h2>
+        <div style="margin-top:12px;padding:16px;background:#fafbfc;border-radius:8px;text-align:left;font-size:13px;color:#555;line-height:1.8;">
+          宛先: hashimoto@example.com<br>
+          件名: 【ご提案】DX推進支援プランのご案内<br>
+          添付: A社_DX提案書_v2.pdf
+        </div>
+        <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;">
+          <span style="padding:12px 32px;background:#28a745;color:#fff;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">承認して送信</span>
+          <span style="padding:12px 32px;background:#fafbfc;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;">内容を確認</span>
+          <span style="padding:12px 32px;background:#fafbfc;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;">拒否</span>
+        </div>
+        <div style="margin-top:24px;font-size:12px;color:#ccc;">他に2件の承認待ちがあります</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 案6: プロジェクトマップ ===== -->
+<div class="concept" id="c5">
+  <div class="desc">
+    <h3>案6: プロジェクトマップ — プロジェクト一覧が主役</h3>
+    <p>各プロジェクトがカードで並び、進捗・前提・Next Actionが一覧で見える。</p>
+    <p style="color:#28a745;margin-top:6px;">◆ 複数プロジェクトを横断的に把握できる</p>
+  </div>
+  <div class="mock">
+    <div class="mock-header"><span class="mock-logo">SANBO AI</span></div>
+    <div style="padding:24px;">
+      <div class="section-title">プロジェクト一覧</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:15px;font-weight:600;">営業報告</span><span style="font-size:11px;color:#28a745;">■ 順調</span></div>
+          <div style="font-size:12px;color:#888;margin-top:8px;border-top:1px solid #f5f5f5;padding-top:8px;">// 既存顧客アップセルに特化</div>
+          <div style="font-size:12px;color:#888;">>> アップセル率20%達成</div>
+          <div style="font-size:12px;color:#28a745;margin-top:4px;">-> A社提案書を今週提出</div>
+          <div style="font-size:11px;color:#ccc;margin-top:8px;">最終更新: 2時間前</div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:15px;font-weight:600;">月次レポート</span><span style="font-size:11px;color:#fbbc05;">△ 期限近</span></div>
+          <div style="font-size:12px;color:#888;margin-top:8px;border-top:1px solid #f5f5f5;padding-top:8px;">// 毎月25日までに提出</div>
+          <div style="font-size:12px;color:#888;">>> 取締役会への報告精度向上</div>
+          <div style="font-size:12px;color:#dc3545;margin-top:4px;">-> 締切まで残り3日</div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:15px;font-weight:600;">競合分析</span><span style="font-size:11px;color:#4285f4;">◇ 進行中</span></div>
+          <div style="font-size:12px;color:#888;margin-top:8px;border-top:1px solid #f5f5f5;padding-top:8px;">// B社の新サービスに対する分析</div>
+          <div style="font-size:12px;color:#888;">>> 差別化ポイントの明確化</div>
+          <div style="font-size:12px;color:#4285f4;margin-top:4px;">-> 価格比較資料を作成中</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 案7: 社長レポート ===== -->
+<div class="concept" id="c6">
+  <div class="desc">
+    <h3>案7: 社長レポート — 部下の活動を可視化</h3>
+    <p>部長ごとのAI活用状況、プロジェクト別の時間配分、コスト削減効果をグラフ風に表示。</p>
+    <p style="color:#28a745;margin-top:6px;">◆ CEO戦略会議の要件（部長の活動可視化）に最も合致</p>
+  </div>
+  <div class="mock">
+    <div class="mock-header"><span class="mock-logo">SANBO AI</span></div>
+    <div style="padding:24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div class="card">
+          <div class="section-title">メンバー別AI活用度</div>
+          <div style="padding:6px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f5f5f5;">
+            <span style="font-size:13px;">佐々木（営業部長）</span>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:100px;height:6px;background:#e5e7eb;border-radius:3px;"><div style="width:85%;height:6px;background:#28a745;border-radius:3px;"></div></div><span style="font-size:11px;color:#28a745;">85%</span></div>
+          </div>
+          <div style="padding:6px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f5f5f5;">
+            <span style="font-size:13px;">田中（企画部長）</span>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:100px;height:6px;background:#e5e7eb;border-radius:3px;"><div style="width:60%;height:6px;background:#4285f4;border-radius:3px;"></div></div><span style="font-size:11px;color:#4285f4;">60%</span></div>
+          </div>
+          <div style="padding:6px 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;">鈴木（経理部長）</span>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:100px;height:6px;background:#e5e7eb;border-radius:3px;"><div style="width:25%;height:6px;background:#dc3545;border-radius:3px;"></div></div><span style="font-size:11px;color:#dc3545;">25%</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title">コスト削減効果</div>
+          <div style="text-align:center;padding:12px;">
+            <div style="font-size:36px;font-weight:700;color:#28a745;">¥1,245,000</div>
+            <div style="font-size:12px;color:#888;margin-top:4px;">今月の推定削減額</div>
+            <div style="font-size:13px;color:#555;margin-top:12px;">AI実行: 47回 x 人件費換算 ¥26,489/回</div>
+            <div style="font-size:13px;color:#28a745;margin-top:4px;">ROI: 2,490%</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">プロジェクト別 時間配分</div>
+        <div style="display:flex;gap:4px;height:24px;border-radius:4px;overflow:hidden;">
+          <div style="width:40%;background:#1a1a2e;" title="営業報告"></div>
+          <div style="width:25%;background:#4285f4;" title="提案書"></div>
+          <div style="width:20%;background:#34a853;" title="月次レポート"></div>
+          <div style="width:15%;background:#fbbc05;" title="競合分析"></div>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:#888;">
+          <span>■ 営業報告 40%</span><span style="color:#4285f4;">■ 提案書 25%</span><span style="color:#34a853;">■ 月次 20%</span><span style="color:#fbbc05;">■ 競合 15%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 案8: コマンドセンター ===== -->
+<div class="concept" id="c7">
+  <div class="desc">
+    <h3>案8: コマンドセンター — 全体が一画面で見える</h3>
+    <p>統計+承認+チャット入力+最近の成果物が1画面に凝縮。スクロール不要。</p>
+    <p style="color:#28a745;margin-top:6px;">◆ 情報密度が高い。パワーユーザー向け</p>
+  </div>
+  <div class="mock">
+    <div class="mock-header"><span class="mock-logo">SANBO AI</span></div>
+    <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;gap:12px;">
+      <div class="card" style="grid-column:1/3;">
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <input placeholder="◆ 参謀AIに指示..." style="flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none;" />
+          <span style="padding:10px 16px;background:#1a1a2e;color:#fff;border-radius:6px;font-size:13px;cursor:pointer;">送信</span>
+        </div>
+        <div style="display:flex;gap:20px;font-size:12px;color:#888;">
+          <span>◆ 47回実行</span><span>▧ 12通送信</span><span>▤ 8件作成</span><span>▥ 5件分析</span>
+        </div>
+      </div>
+      <div class="card" style="border:1px solid #dc3545;">
+        <div style="font-size:13px;font-weight:600;color:#dc3545;margin-bottom:8px;">△ 承認待ち 2件</div>
+        <div style="font-size:12px;padding:4px 0;border-bottom:1px solid #f5f5f5;">メール送信</div>
+        <div style="font-size:12px;padding:4px 0;">ファイル削除</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">最近の成果物</div>
+        <div style="font-size:12px;padding:3px 0;color:#555;">□ 営業報告書.html</div>
+        <div style="font-size:12px;padding:3px 0;color:#555;">□ 売上分析.xlsx</div>
+        <div style="font-size:12px;padding:3px 0;color:#555;">□ A社提案書.pdf</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">活用度</div>
+        <div style="font-size:24px;font-weight:700;color:#28a745;">HIGH</div>
+        <div style="font-size:11px;color:#888;">削減: ¥1.2M</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">プロジェクト</div>
+        <div style="font-size:12px;padding:3px 0;">▷ 営業報告 <span style="color:#28a745;">■</span></div>
+        <div style="font-size:12px;padding:3px 0;">▷ 提案書 <span style="color:#4285f4;">◇</span></div>
+        <div style="font-size:12px;padding:3px 0;">▷ 月次レポ <span style="color:#fbbc05;">△</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 案9: カレンダー統合 ===== -->
+<div class="concept" id="c8">
+  <div class="desc">
+    <h3>案9: カレンダー統合 — 今日のスケジュールと連動</h3>
+    <p>左にタイムライン（今日の予定）、右にAI活動。会議の前に資料が自動準備される体験。</p>
+    <p style="color:#28a745;margin-top:6px;">◆ 「今日の予定に合わせて何を準備すべきか」が分かる</p>
+  </div>
+  <div class="mock">
+    <div class="mock-header"><span class="mock-logo">SANBO AI</span></div>
+    <div style="display:flex;padding:20px;gap:16px;">
+      <div style="width:280px;">
+        <div class="section-title">◷ 今日のスケジュール</div>
+        <div style="border-left:2px solid #e5e7eb;padding-left:12px;margin-left:6px;">
+          <div style="padding:8px 0;font-size:12px;color:#888;">09:00</div>
+          <div class="card" style="padding:10px;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:500;">朝会</div>
+            <div style="font-size:11px;color:#888;">参加者: 全部長</div>
+          </div>
+          <div style="padding:8px 0;font-size:12px;color:#888;">10:00</div>
+          <div class="card" style="padding:10px;margin-bottom:8px;border-left:3px solid #4285f4;">
+            <div style="font-size:13px;font-weight:500;">A社商談</div>
+            <div style="font-size:11px;color:#4285f4;margin-top:2px;">◆ 提案書を準備済み</div>
+          </div>
+          <div style="padding:8px 0;font-size:12px;color:#888;">14:00</div>
+          <div class="card" style="padding:10px;border-left:3px solid #fbbc05;">
+            <div style="font-size:13px;font-weight:500;">取締役会</div>
+            <div style="font-size:11px;color:#fbbc05;margin-top:2px;">◆ 報告書を作成中...</div>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div class="section-title">◆ 参謀からの提案</div>
+        <div class="card" style="margin-bottom:12px;border-left:3px solid #1a1a2e;">
+          <div style="font-size:14px;font-weight:500;">10:00のA社商談に向けて</div>
+          <div style="font-size:13px;color:#555;margin-top:6px;line-height:1.7;">提案書（5ページ）は作成済みです。先方の最新決算情報を追加することをお勧めします。</div>
+          <div style="margin-top:8px;"><span style="padding:4px 12px;background:#1a1a2e;color:#fff;border-radius:4px;font-size:11px;cursor:pointer;">決算情報を追加</span></div>
+        </div>
+        <div class="card" style="border-left:3px solid #fbbc05;">
+          <div style="font-size:14px;font-weight:500;">14:00の取締役会に向けて</div>
+          <div style="font-size:13px;color:#555;margin-top:6px;line-height:1.7;">月次報告書を作成中です（進捗60%）。11:30までに完成予定です。</div>
+          <div style="width:100%;height:4px;background:#e5e7eb;border-radius:2px;margin-top:8px;"><div style="width:60%;height:4px;background:#fbbc05;border-radius:2px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 案10: ミニマル ===== -->
+<div class="concept" id="c9">
+  <div class="desc">
+    <h3>案10: ミニマル — 入力欄だけ</h3>
+    <p>Google検索のように、入力欄だけが中央にある。入力すればチャットに遷移。承認待ちは小さなバッジのみ。</p>
+    <p style="color:#28a745;margin-top:6px;">◆ 最速で指示を出せる。迷わない</p>
+  </div>
+  <div class="mock">
+    <div class="mock-header"><span class="mock-logo">SANBO AI</span></div>
+    <div style="display:flex;align-items:center;justify-content:center;min-height:400px;">
+      <div style="text-align:center;max-width:600px;width:100%;padding:0 24px;">
+        <div style="font-size:36px;font-weight:700;color:#1a1a2e;letter-spacing:3px;">SANBO</div>
+        <div style="font-size:14px;color:#888;margin-top:4px;">参謀AI</div>
+        <div style="margin-top:32px;display:flex;gap:6px;">
+          <input placeholder="何でも指示してください..." style="flex:1;padding:14px 20px;border:1px solid #ddd;border-radius:12px;font-size:15px;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.04);" />
+          <span style="padding:14px 24px;background:#1a1a2e;color:#fff;border-radius:12px;font-size:15px;cursor:pointer;font-weight:600;">送信</span>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+          <span style="padding:6px 14px;border:1px solid #e5e7eb;border-radius:16px;font-size:12px;color:#888;cursor:pointer;">報告書を作成</span>
+          <span style="padding:6px 14px;border:1px solid #e5e7eb;border-radius:16px;font-size:12px;color:#888;cursor:pointer;">メールを送信</span>
+          <span style="padding:6px 14px;border:1px solid #e5e7eb;border-radius:16px;font-size:12px;color:#888;cursor:pointer;">データを分析</span>
+          <span style="padding:6px 14px;border:1px solid #e5e7eb;border-radius:16px;font-size:12px;color:#888;cursor:pointer;">スライドを作成</span>
+        </div>
+        <div style="margin-top:24px;font-size:12px;color:#ccc;">
+          <span style="padding:3px 8px;background:#dc354515;color:#dc3545;border-radius:8px;">△ 2件の承認待ち</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(n) {
+  document.querySelectorAll('.concept').forEach((c,i) => c.classList.toggle('active', i===n));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===n));
+}
+</script>
+
+</body>
+</html>
