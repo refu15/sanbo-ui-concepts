@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SANBO AI — Dashboard v2 Concepts (KPI+ブリーフ+コマンド+カレンダー)</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter','Noto Sans JP',system-ui,sans-serif; background:#f8f9fb; color:#1a1a2e; }
+  .tab-nav { display:flex; gap:0; background:#1a1a2e; padding:8px 16px; overflow-x:auto; position:sticky; top:0; z-index:100; }
+  .tab-btn { padding:8px 14px; border:none; background:transparent; color:#888; cursor:pointer; font-size:11px; white-space:nowrap; border-radius:6px 6px 0 0; }
+  .tab-btn.active { background:#fff; color:#1a1a2e; font-weight:600; }
+  .concept { display:none; }
+  .concept.active { display:block; }
+  .desc { padding:16px 20px; margin:16px 20px; background:#f0faf6; border-radius:8px; border-left:4px solid #1a1a2e; font-size:13px; }
+  .desc h3 { font-size:15px; margin-bottom:6px; }
+  .desc p { color:#555; line-height:1.6; }
+  .mock { border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin:16px 20px; background:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.04); }
+  .mh { background:#fff; padding:0 20px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; height:48px; }
+  .logo { font-size:18px; font-weight:700; color:#1a1a2e; letter-spacing:1px; }
+  .nav { display:flex; gap:2px; }
+  .ni { padding:6px 12px; border-radius:6px; font-size:12px; color:#888; }
+  .ni.a { background:#f0f0f0; color:#1a1a2e; font-weight:600; }
+  .sub { display:flex; gap:10px; font-size:11px; color:#888; }
+  .sub a { color:#888; text-decoration:none; }
+  .c { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:16px; }
+  .st { font-size:28px; font-weight:700; }
+  .sl { font-size:11px; color:#888; margin-top:3px; }
+  .t { font-size:14px; font-weight:600; margin-bottom:10px; }
+  .brief { padding:14px; background:#fafbfc; border-radius:8px; margin-bottom:8px; font-size:13px; line-height:1.7; color:#555; }
+  .brief-label { font-size:12px; font-weight:600; margin-bottom:4px; }
+  .sched { padding:8px 12px; border-left:3px solid #e5e7eb; margin-bottom:6px; font-size:12px; }
+  .sched.now { border-color:#4285f4; background:#f8fbff; }
+  .sched.soon { border-color:#fbbc05; }
+  .bar { height:5px; background:#e5e7eb; border-radius:3px; }
+  .bar-fill { height:5px; border-radius:3px; }
+  .cmd { display:flex; gap:6px; }
+  .cmd input { flex:1; padding:10px 14px; border:1px solid #ddd; border-radius:8px; font-size:13px; outline:none; }
+  .cmd button { padding:10px 18px; background:#1a1a2e; color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; font-weight:500; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:500; }
+  .bg { background:#28a74515; color:#28a745; }
+  .by { background:#fbbc0515; color:#856404; }
+  .br { background:#dc354515; color:#dc3545; }
+  .bb { background:#4285f415; color:#4285f4; }
+</style>
+</head>
+<body>
+
+<div class="tab-nav">
+  <span style="color:#fff;font-weight:700;padding:8px 12px;font-size:13px;">Dashboard v2</span>
+  <button class="tab-btn active" onclick="show(0)">A: ブリーフ上+KPI下</button>
+  <button class="tab-btn" onclick="show(1)">B: KPI横+コマンド中央</button>
+  <button class="tab-btn" onclick="show(2)">C: 左カレンダー+右ブリーフ</button>
+  <button class="tab-btn" onclick="show(3)">D: コマンド上+3列下</button>
+  <button class="tab-btn" onclick="show(4)">E: ブリーフ中央+周囲KPI</button>
+  <button class="tab-btn" onclick="show(5)">F: タイムライン左+右統合</button>
+  <button class="tab-btn" onclick="show(6)">G: カード4分割</button>
+  <button class="tab-btn" onclick="show(7)">H: フルワイド1列</button>
+  <button class="tab-btn" onclick="show(8)">I: 上コマンド+中ブリーフ+下スケジュール</button>
+  <button class="tab-btn" onclick="show(9)">J: グリッドモザイク</button>
+</div>
+
+<!-- ===== A: ブリーフ上+KPI下 ===== -->
+<div class="concept active" id="c0">
+  <div class="desc">
+    <h3>A: ブリーフが主役、KPIは下で補足</h3>
+    <p>ログイン直後にAIブリーフ（今日の要約+提案）。下にKPI+スケジュール+コマンド入力。</p>
+  </div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div class="nav"><span class="ni a">▣ ダッシュボード</span><span class="ni">◻ チャット</span><span class="ni">▨ デスク</span><span class="ni">▦ ボード</span><span class="ni">◷ タイムライン</span></div><div class="sub"><a href="#">承認待ち</a><a href="#">コンテキスト</a></div></div>
+    <div style="padding:20px;">
+      <!-- ブリーフ -->
+      <div class="c" style="margin-bottom:16px;border-left:3px solid #1a1a2e;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div><div style="font-size:11px;color:#888;">2026.04.09 09:00</div><div style="font-size:17px;font-weight:600;margin-top:2px;">おはようございます。本日のブリーフです。</div></div>
+          <span class="badge br">△ 2件の承認待ち</span>
+        </div>
+        <div class="brief" style="border-left:3px solid #dc3545;">
+          <div class="brief-label" style="color:#dc3545;">// 要対応</div>
+          A社提案書のメール送信が承認待ちです。月次経費レポートの締切が明後日です。
+        </div>
+        <div class="brief" style="border-left:3px solid #28a745;">
+          <div class="brief-label" style="color:#28a745;">>> 昨日の成果</div>
+          営業報告書を作成（5P Slide）。売上データ分析完了（前月比+12%）。3件のメール下書き。
+        </div>
+        <div class="brief" style="border-left:3px solid #4285f4;">
+          <div class="brief-label" style="color:#4285f4;">-> 本日の提案</div>
+          10:00のA社商談に向けて提案書の最終確認をお勧めします。14:00の取締役会資料は作成中です。
+        </div>
+      </div>
+      <!-- KPI + スケジュール + コマンド -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="c" style="border-top:3px solid #1a1a2e;"><div class="st">47</div><div class="sl">AI実行回数</div></div>
+            <div class="c" style="border-top:3px solid #28a745;"><div class="st">¥1.2M</div><div class="sl">コスト削減</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="c" style="height:100%;">
+            <div class="t">◷ 今日の予定</div>
+            <div class="sched now">10:00 A社商談 <span class="badge bb">資料準備済</span></div>
+            <div class="sched soon">14:00 取締役会 <span class="badge by">資料作成中</span></div>
+            <div class="sched">16:00 部門MTG</div>
+          </div>
+        </div>
+        <div>
+          <div class="c" style="height:100%;">
+            <div class="t">◆ 指示する</div>
+            <div class="cmd"><input placeholder="参謀AIに指示..." /><button>送信</button></div>
+            <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;">
+              <span style="padding:4px 10px;border:1px solid #e5e7eb;border-radius:12px;font-size:10px;color:#888;cursor:pointer;">報告書を作成</span>
+              <span style="padding:4px 10px;border:1px solid #e5e7eb;border-radius:12px;font-size:10px;color:#888;cursor:pointer;">メールを送信</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== B: KPI横+コマンド中央 ===== -->
+<div class="concept" id="c1">
+  <div class="desc">
+    <h3>B: KPIバーが上、コマンド中央、ブリーフ下</h3>
+    <p>KPIは小さなバーで常時表示。中央にコマンド入力。下にブリーフ+スケジュール。</p>
+  </div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div class="nav"><span class="ni a">▣</span><span class="ni">◻</span><span class="ni">▨</span><span class="ni">▦</span><span class="ni">◷</span></div><div class="sub"><span class="badge br">△ 2</span></div></div>
+    <!-- KPIバー -->
+    <div style="display:flex;gap:0;border-bottom:1px solid #e5e7eb;font-size:12px;">
+      <div style="flex:1;padding:8px 16px;text-align:center;border-right:1px solid #f0f0f0;"><span style="font-weight:700;">47</span> <span style="color:#888;">実行</span></div>
+      <div style="flex:1;padding:8px 16px;text-align:center;border-right:1px solid #f0f0f0;"><span style="font-weight:700;color:#28a745;">¥1.2M</span> <span style="color:#888;">削減</span></div>
+      <div style="flex:1;padding:8px 16px;text-align:center;border-right:1px solid #f0f0f0;"><span style="font-weight:700;">5</span> <span style="color:#888;">ユーザー</span></div>
+      <div style="flex:1;padding:8px 16px;text-align:center;"><span style="font-weight:700;color:#28a745;">HIGH</span> <span style="color:#888;">活用度</span></div>
+    </div>
+    <div style="padding:24px;">
+      <!-- コマンド中央 -->
+      <div style="max-width:600px;margin:0 auto 24px;text-align:center;">
+        <div style="font-size:14px;color:#888;margin-bottom:8px;">◆ 参謀AI</div>
+        <div class="cmd"><input placeholder="何でも指示してください..." style="font-size:14px;padding:12px 18px;border-radius:10px;" /><button style="border-radius:10px;padding:12px 20px;">送信</button></div>
+      </div>
+      <!-- ブリーフ + スケジュール -->
+      <div style="display:grid;grid-template-columns:3fr 2fr;gap:16px;">
+        <div class="c">
+          <div class="t">◆ 今日のブリーフ</div>
+          <div class="brief" style="border-left:3px solid #dc3545;"><div class="brief-label" style="color:#dc3545;">// 要対応</div>A社メール送信が承認待ち。経費レポート締切が明後日。</div>
+          <div class="brief" style="border-left:3px solid #4285f4;"><div class="brief-label" style="color:#4285f4;">-> 提案</div>B社競合分析を先に進めることをお勧めします。</div>
+        </div>
+        <div class="c">
+          <div class="t">◷ スケジュール</div>
+          <div class="sched now">10:00 A社商談 <span class="badge bb">準備済</span></div>
+          <div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div>
+          <div class="sched">16:00 部門MTG</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== C: 左カレンダー+右ブリーフ ===== -->
+<div class="concept" id="c2">
+  <div class="desc">
+    <h3>C: 左にスケジュール、右にブリーフ+KPI+コマンド</h3>
+    <p>予定と連動した体験。左で「今日何がある」→右で「参謀が何を準備した」。</p>
+  </div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div class="nav"><span class="ni a">▣</span><span class="ni">◻</span><span class="ni">▨</span><span class="ni">▦</span><span class="ni">◷</span></div><div class="sub"><a href="#" style="color:#dc3545;">承認待ち</a></div></div>
+    <div style="display:flex;">
+      <!-- 左: スケジュール -->
+      <div style="width:260px;border-right:1px solid #e5e7eb;padding:16px;">
+        <div class="t">◷ 今日のスケジュール</div>
+        <div style="font-size:11px;color:#ccc;margin-bottom:8px;">2026.04.09（水）</div>
+        <div class="sched">09:00 朝会</div>
+        <div class="sched now">10:00 A社商談<div style="font-size:11px;color:#4285f4;margin-top:2px;">◆ 提案書を準備済み</div></div>
+        <div class="sched soon">14:00 取締役会<div style="font-size:11px;color:#fbbc05;margin-top:2px;">◆ 報告書を作成中 60%</div><div class="bar" style="margin-top:4px;"><div class="bar-fill" style="width:60%;background:#fbbc05;"></div></div></div>
+        <div class="sched">16:00 部門MTG</div>
+        <div class="sched">17:30 退社</div>
+      </div>
+      <!-- 右: ブリーフ+KPI+コマンド -->
+      <div style="flex:1;padding:16px;">
+        <div class="c" style="border-left:3px solid #1a1a2e;margin-bottom:12px;">
+          <div style="font-size:16px;font-weight:600;">おはようございます。</div>
+          <div class="brief" style="margin-top:8px;border-left:3px solid #dc3545;"><div class="brief-label" style="color:#dc3545;">// 要対応</div>A社提案書メール送信が承認待ちです。</div>
+          <div class="brief" style="border-left:3px solid #4285f4;"><div class="brief-label" style="color:#4285f4;">-> 10:00商談に向けて</div>提案書は完成済みです。先方の最新決算情報を追加しますか？</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div class="c" style="text-align:center;padding:10px;"><div style="font-size:20px;font-weight:700;">47</div><div class="sl">実行</div></div>
+          <div class="c" style="text-align:center;padding:10px;"><div style="font-size:20px;font-weight:700;color:#28a745;">¥1.2M</div><div class="sl">削減</div></div>
+          <div class="c" style="text-align:center;padding:10px;"><div style="font-size:20px;font-weight:700;">5</div><div class="sl">ユーザー</div></div>
+          <div class="c" style="text-align:center;padding:10px;"><div style="font-size:20px;font-weight:700;color:#28a745;">HIGH</div><div class="sl">活用度</div></div>
+        </div>
+        <div class="cmd"><input placeholder="◆ 参謀AIに指示..." /><button>送信</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== D: コマンド上+3列下 ===== -->
+<div class="concept" id="c3">
+  <div class="desc">
+    <h3>D: コマンドが最上部、下にKPI/ブリーフ/スケジュール3列</h3>
+    <p>「まず指示する」が先。情報は下で確認。</p>
+  </div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div class="nav"><span class="ni a">▣</span><span class="ni">◻</span><span class="ni">▨</span><span class="ni">▦</span><span class="ni">◷</span></div><div class="sub"><span class="badge br">△ 2</span></div></div>
+    <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;">
+      <div class="cmd" style="max-width:700px;margin:0 auto;"><input placeholder="◆ 参謀AIに指示してください..." style="padding:12px 18px;font-size:14px;border-radius:10px;" /><button style="padding:12px 20px;border-radius:10px;">送信</button></div>
+    </div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:14px;">
+      <!-- KPI -->
+      <div>
+        <div class="t">数値</div>
+        <div class="c" style="margin-bottom:8px;border-top:3px solid #1a1a2e;"><div class="st">47</div><div class="sl">AI実行回数</div></div>
+        <div class="c" style="border-top:3px solid #28a745;"><div class="st">¥1.2M</div><div class="sl">推定コスト削減</div></div>
+      </div>
+      <!-- ブリーフ -->
+      <div>
+        <div class="t">◆ ブリーフ</div>
+        <div class="brief" style="border-left:3px solid #dc3545;"><div class="brief-label" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。経費レポート締切が明後日。</div>
+        <div class="brief" style="border-left:3px solid #28a745;"><div class="brief-label" style="color:#28a745;">>> 昨日</div>報告書5P作成。売上+12%分析完了。メール3件下書き。</div>
+        <div class="brief" style="border-left:3px solid #4285f4;"><div class="brief-label" style="color:#4285f4;">-> 提案</div>取締役会資料の着手をお勧めします。</div>
+      </div>
+      <!-- スケジュール -->
+      <div>
+        <div class="t">◷ 今日</div>
+        <div class="sched now">10:00 A社商談 <span class="badge bb">準備済</span></div>
+        <div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div>
+        <div class="sched">16:00 部門MTG</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== E: ブリーフ中央+周囲KPI ===== -->
+<div class="concept" id="c4">
+  <div class="desc">
+    <h3>E: ブリーフが中央の大カード、四隅にKPI+スケジュール+コマンド</h3>
+    <p>ブリーフが視覚的に最も目立つ。KPIは補足情報として周囲に配置。</p>
+  </div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div class="nav"><span class="ni a">▣</span><span class="ni">◻</span><span class="ni">▨</span><span class="ni">▦</span><span class="ni">◷</span></div><div class="sub"><a href="#" style="color:#dc3545;">△ 2</a></div></div>
+    <div style="padding:20px;display:grid;grid-template-columns:180px 1fr 200px;grid-template-rows:auto auto;gap:12px;">
+      <!-- 左上: KPI -->
+      <div>
+        <div class="c" style="margin-bottom:8px;text-align:center;"><div style="font-size:22px;font-weight:700;">47</div><div class="sl">実行</div></div>
+        <div class="c" style="text-align:center;"><div style="font-size:22px;font-weight:700;color:#28a745;">¥1.2M</div><div class="sl">削減</div></div>
+      </div>
+      <!-- 中央: ブリーフ -->
+      <div class="c" style="grid-row:1/3;border-left:3px solid #1a1a2e;">
+        <div style="font-size:11px;color:#888;">2026.04.09 09:00</div>
+        <div style="font-size:18px;font-weight:600;margin:6px 0 12px;">おはようございます。本日のブリーフです。</div>
+        <div class="brief" style="border-left:3px solid #dc3545;"><div class="brief-label" style="color:#dc3545;">// 要対応</div>A社提案書メール承認待ち。経費レポート締切明後日。橋本さんメール返信未処理。</div>
+        <div class="brief" style="border-left:3px solid #28a745;"><div class="brief-label" style="color:#28a745;">>> 昨日の成果</div>営業報告書5P作成。売上+12%分析完了。メール3件下書き。</div>
+        <div class="brief" style="border-left:3px solid #4285f4;"><div class="brief-label" style="color:#4285f4;">-> 本日の提案</div>10:00のA社商談で提案書の最終確認。14:00の取締役会資料を11:30までに完成予定。</div>
+        <div class="cmd" style="margin-top:12px;"><input placeholder="◆ 指示する..." /><button>送信</button></div>
+      </div>
+      <!-- 右: スケジュール -->
+      <div class="c" style="grid-row:1/3;">
+        <div class="t">◷ 今日</div>
+        <div class="sched">09:00 朝会</div>
+        <div class="sched now">10:00 A社商談<div style="font-size:10px;color:#4285f4;">準備済</div></div>
+        <div class="sched soon">14:00 取締役会<div style="font-size:10px;color:#fbbc05;">作成中 60%</div></div>
+        <div class="sched">16:00 部門MTG</div>
+      </div>
+      <!-- 左下: 活用度 -->
+      <div>
+        <div class="c" style="text-align:center;"><div style="font-size:22px;font-weight:700;color:#28a745;">HIGH</div><div class="sl">活用度</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== F: タイムライン左+右統合 ===== -->
+<div class="concept" id="c5">
+  <div class="desc">
+    <h3>F: 左にリアルタイムフィード、右にブリーフ+KPI+コマンド</h3>
+    <p>「今何が起きているか」と「今日の全体像」を同時に見れる。</p>
+  </div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div class="nav"><span class="ni a">▣</span><span class="ni">◻</span><span class="ni">▨</span><span class="ni">▦</span><span class="ni">◷</span></div></div>
+    <div style="display:flex;">
+      <div style="width:320px;border-right:1px solid #e5e7eb;padding:14px;overflow-y:auto;max-height:500px;">
+        <div class="t">リアルタイム</div>
+        <div style="border-left:2px solid #e5e7eb;padding-left:12px;margin-left:4px;">
+          <div style="position:relative;margin-bottom:10px;"><div style="position:absolute;left:-19px;top:3px;width:8px;height:8px;border-radius:50%;background:#28a745;border:2px solid #fff;"></div><div class="c" style="padding:10px;font-size:12px;"><div style="color:#888;font-size:10px;">09:15</div>月次報告書作成 <span class="badge bg">■ 完了</span></div></div>
+          <div style="position:relative;margin-bottom:10px;"><div style="position:absolute;left:-19px;top:3px;width:8px;height:8px;border-radius:50%;background:#fbbc05;border:2px solid #fff;"></div><div class="c" style="padding:10px;font-size:12px;border:1px solid #fbbc05;"><div style="color:#888;font-size:10px;">09:20</div>メール送信 <span class="badge by">△ 承認待ち</span></div></div>
+          <div style="position:relative;"><div style="position:absolute;left:-19px;top:3px;width:8px;height:8px;border-radius:50%;background:#4285f4;border:2px solid #fff;"></div><div class="c" style="padding:10px;font-size:12px;"><div style="color:#888;font-size:10px;">09:10</div>売上データ読取 <span class="badge bg">■ 完了</span></div></div>
+        </div>
+      </div>
+      <div style="flex:1;padding:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+          <div class="c" style="text-align:center;padding:10px;"><div style="font-size:20px;font-weight:700;">47</div><div class="sl">実行</div></div>
+          <div class="c" style="text-align:center;padding:10px;"><div style="font-size:20px;font-weight:700;color:#28a745;">¥1.2M</div><div class="sl">削減</div></div>
+          <div class="c" style="text-align:center;padding:10px;"><div style="font-size:20px;font-weight:700;">5</div><div class="sl">ユーザー</div></div>
+          <div class="c" style="text-align:center;padding:10px;"><span class="badge br">△ 2</span><div class="sl" style="margin-top:4px;">承認待ち</div></div>
+        </div>
+        <div class="c" style="margin-bottom:14px;border-left:3px solid #1a1a2e;">
+          <div class="brief" style="border-left:3px solid #dc3545;"><div class="brief-label" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。経費レポート締切明後日。</div>
+          <div class="brief" style="border-left:3px solid #4285f4;"><div class="brief-label" style="color:#4285f4;">-> 提案</div>取締役会資料の着手をお勧めします。</div>
+        </div>
+        <div class="cmd"><input placeholder="◆ 指示する..." /><button>送信</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== G: カード4分割 ===== -->
+<div class="concept" id="c6">
+  <div class="desc">
+    <h3>G: 画面を均等4分割（KPI / ブリーフ / スケジュール / コマンド）</h3>
+    <p>4つの要素が同じ重みで並ぶ。バランス型。</p>
+  </div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div class="nav"><span class="ni a">▣</span><span class="ni">◻</span><span class="ni">▨</span><span class="ni">▦</span><span class="ni">◷</span></div></div>
+    <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;min-height:420px;">
+      <div class="c"><div class="t">数値サマリー</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><div style="text-align:center;"><div class="st">47</div><div class="sl">実行</div></div><div style="text-align:center;"><div class="st" style="color:#28a745;">¥1.2M</div><div class="sl">削減</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;">5</div><div class="sl">ユーザー</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:#28a745;">HIGH</div><div class="sl">活用度</div></div></div></div>
+      <div class="c" style="border-left:3px solid #1a1a2e;"><div class="t">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;font-size:12px;padding:10px;"><div class="brief-label" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。経費締切明後日。</div><div class="brief" style="border-left:3px solid #4285f4;font-size:12px;padding:10px;"><div class="brief-label" style="color:#4285f4;">-> 提案</div>取締役会資料の着手をお勧め。</div></div>
+      <div class="c"><div class="t">◷ スケジュール</div><div class="sched now">10:00 A社商談 <span class="badge bb">準備済</span></div><div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div><div class="sched">16:00 部門MTG</div></div>
+      <div class="c" style="display:flex;flex-direction:column;justify-content:center;"><div class="t">◆ 指示する</div><div class="cmd"><input placeholder="参謀AIに指示..." /><button>送信</button></div><div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;"><span style="padding:4px 10px;border:1px solid #e5e7eb;border-radius:12px;font-size:10px;color:#888;">報告書</span><span style="padding:4px 10px;border:1px solid #e5e7eb;border-radius:12px;font-size:10px;color:#888;">メール</span><span style="padding:4px 10px;border:1px solid #e5e7eb;border-radius:12px;font-size:10px;color:#888;">スライド</span><span style="padding:4px 10px;border:1px solid #e5e7eb;border-radius:12px;font-size:10px;color:#888;">分析</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== H: フルワイド1列 ===== -->
+<div class="concept" id="c7">
+  <div class="desc">
+    <h3>H: 縦スクロール1列（コマンド→KPI→ブリーフ→スケジュール）</h3>
+    <p>モバイル親和性最高。上から順に見ていく。</p>
+  </div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div class="nav"><span class="ni a">▣</span><span class="ni">◻</span></div></div>
+    <div style="max-width:640px;margin:0 auto;padding:20px;">
+      <div class="cmd" style="margin-bottom:16px;"><input placeholder="◆ 参謀AIに指示..." style="padding:12px 16px;font-size:14px;border-radius:10px;" /><button style="padding:12px 18px;border-radius:10px;">送信</button></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+        <div class="c" style="text-align:center;padding:12px;"><div style="font-size:22px;font-weight:700;">47</div><div class="sl">実行</div></div>
+        <div class="c" style="text-align:center;padding:12px;"><div style="font-size:22px;font-weight:700;color:#28a745;">¥1.2M</div><div class="sl">削減</div></div>
+        <div class="c" style="text-align:center;padding:12px;"><span class="badge br" style="font-size:14px;padding:4px 10px;">△ 2</span><div class="sl" style="margin-top:4px;">承認待ち</div></div>
+        <div class="c" style="text-align:center;padding:12px;"><div style="font-size:22px;font-weight:700;color:#28a745;">HIGH</div><div class="sl">活用度</div></div>
+      </div>
+      <div class="c" style="margin-bottom:16px;border-left:3px solid #1a1a2e;">
+        <div style="font-size:16px;font-weight:600;margin-bottom:10px;">◆ 本日のブリーフ</div>
+        <div class="brief" style="border-left:3px solid #dc3545;"><div class="brief-label" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。経費レポート締切明後日。</div>
+        <div class="brief" style="border-left:3px solid #28a745;"><div class="brief-label" style="color:#28a745;">>> 昨日</div>報告書5P作成。売上+12%。メール3件。</div>
+        <div class="brief" style="border-left:3px solid #4285f4;"><div class="brief-label" style="color:#4285f4;">-> 提案</div>10:00商談の提案書最終確認。14:00取締役会資料は作成中。</div>
+      </div>
+      <div class="c">
+        <div class="t">◷ 今日のスケジュール</div>
+        <div class="sched now">10:00 A社商談 <span class="badge bb">準備済</span></div>
+        <div class="sched soon">14:00 取締役会 <span class="badge by">作成中 60%</span></div>
+        <div class="sched">16:00 部門MTG</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== I: 上コマンド+中ブリーフ+下スケジュール ===== -->
+<div class="concept" id="c8">
+  <div class="desc">
+    <h3>I: 3段構成（コマンド帯→ブリーフ+KPI→スケジュール帯）</h3>
+    <p>水平に3段。各段が明確な役割を持つ。</p>
+  </div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div class="nav"><span class="ni a">▣</span><span class="ni">◻</span><span class="ni">▨</span><span class="ni">▦</span><span class="ni">◷</span></div><div class="sub"><span class="badge br">△ 2</span></div></div>
+    <!-- 段1: コマンド -->
+    <div style="padding:14px 20px;background:#fafbfc;border-bottom:1px solid #e5e7eb;">
+      <div class="cmd" style="max-width:700px;margin:0 auto;"><input placeholder="◆ 参謀AIに何でも指示してください..." style="padding:11px 16px;font-size:14px;border-radius:10px;" /><button style="padding:11px 20px;border-radius:10px;">送信</button></div>
+    </div>
+    <!-- 段2: ブリーフ + KPI -->
+    <div style="padding:16px 20px;display:grid;grid-template-columns:2fr 1fr;gap:14px;">
+      <div class="c" style="border-left:3px solid #1a1a2e;">
+        <div style="font-size:16px;font-weight:600;margin-bottom:10px;">◆ 本日のブリーフ</div>
+        <div class="brief" style="border-left:3px solid #dc3545;"><div class="brief-label" style="color:#dc3545;">// 要対応</div>A社メール送信が承認待ち。経費レポート締切明後日。</div>
+        <div class="brief" style="border-left:3px solid #4285f4;"><div class="brief-label" style="color:#4285f4;">-> 提案</div>10:00商談の最終確認を。取締役会資料は11:30完成予定。</div>
+      </div>
+      <div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="c" style="text-align:center;border-top:3px solid #1a1a2e;"><div style="font-size:22px;font-weight:700;">47</div><div class="sl">実行</div></div>
+          <div class="c" style="text-align:center;border-top:3px solid #28a745;"><div style="font-size:22px;font-weight:700;color:#28a745;">¥1.2M</div><div class="sl">削減</div></div>
+          <div class="c" style="text-align:center;"><div style="font-size:22px;font-weight:700;">5</div><div class="sl">ユーザー</div></div>
+          <div class="c" style="text-align:center;"><div style="font-size:22px;font-weight:700;color:#28a745;">HIGH</div><div class="sl">活用度</div></div>
+        </div>
+      </div>
+    </div>
+    <!-- 段3: スケジュール帯 -->
+    <div style="padding:12px 20px;background:#fafbfc;border-top:1px solid #e5e7eb;display:flex;gap:12px;overflow-x:auto;">
+      <div class="sched now" style="min-width:180px;">10:00 A社商談 <span class="badge bb">準備済</span></div>
+      <div class="sched soon" style="min-width:180px;">14:00 取締役会 <span class="badge by">作成中</span></div>
+      <div class="sched" style="min-width:180px;">16:00 部門MTG</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== J: グリッドモザイク ===== -->
+<div class="concept" id="c9">
+  <div class="desc">
+    <h3>J: モザイクグリッド — 大小カードが自由に並ぶ</h3>
+    <p>ブリーフが大きなカード、KPI/スケジュール/コマンドが小さなカードで囲む。デザイン性重視。</p>
+  </div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div class="nav"><span class="ni a">▣</span><span class="ni">◻</span><span class="ni">▨</span><span class="ni">▦</span><span class="ni">◷</span></div></div>
+    <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto auto;gap:10px;">
+      <!-- KPI 2つ -->
+      <div class="c" style="border-top:3px solid #1a1a2e;text-align:center;"><div style="font-size:24px;font-weight:700;">47</div><div class="sl">AI実行</div></div>
+      <!-- コマンド -->
+      <div class="c" style="grid-column:2/4;display:flex;align-items:center;gap:6px;"><input placeholder="◆ 参謀に指示..." style="flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none;" /><button style="padding:10px 16px;background:#1a1a2e;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">送信</button></div>
+      <!-- ブリーフ（大カード） -->
+      <div class="c" style="grid-column:1/3;grid-row:2/4;border-left:3px solid #1a1a2e;">
+        <div style="font-size:11px;color:#888;">2026.04.09</div>
+        <div style="font-size:16px;font-weight:600;margin:4px 0 10px;">◆ 本日のブリーフ</div>
+        <div class="brief" style="border-left:3px solid #dc3545;"><div class="brief-label" style="color:#dc3545;">// 要対応</div>A社メール送信が承認待ち。経費レポート締切明後日。橋本さん返信未処理。</div>
+        <div class="brief" style="border-left:3px solid #28a745;"><div class="brief-label" style="color:#28a745;">>> 昨日</div>報告書5P。売上+12%。メール3件下書き。</div>
+        <div class="brief" style="border-left:3px solid #4285f4;"><div class="brief-label" style="color:#4285f4;">-> 提案</div>A社商談の最終確認を。取締役会資料11:30完成予定。</div>
+      </div>
+      <!-- スケジュール -->
+      <div class="c">
+        <div class="t">◷ 今日</div>
+        <div class="sched now" style="font-size:11px;">10:00 A社 <span class="badge bb">準備済</span></div>
+        <div class="sched soon" style="font-size:11px;">14:00 取締役会 <span class="badge by">作成中</span></div>
+        <div class="sched" style="font-size:11px;">16:00 部門MTG</div>
+      </div>
+      <!-- 削減 + 活用度 -->
+      <div class="c" style="text-align:center;"><div style="font-size:24px;font-weight:700;color:#28a745;">¥1.2M</div><div class="sl">コスト削減</div><div style="margin-top:6px;font-size:18px;font-weight:700;color:#28a745;">HIGH</div><div class="sl">活用度</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(n) {
+  document.querySelectorAll('.concept').forEach((c,i) => c.classList.toggle('active', i===n));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===n));
+}
+</script>
+</body>
+</html>
