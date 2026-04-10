@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SANBO AI — KPIバー Design Concepts (B案ベース)</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter','Noto Sans JP',system-ui,sans-serif; background:#f8f9fb; color:#1a1a2e; }
+  .tab-nav { display:flex; gap:0; background:#1a1a2e; padding:8px 16px; overflow-x:auto; position:sticky; top:0; z-index:100; }
+  .tab-btn { padding:8px 12px; border:none; background:transparent; color:#888; cursor:pointer; font-size:11px; white-space:nowrap; border-radius:6px 6px 0 0; }
+  .tab-btn.active { background:#fff; color:#1a1a2e; font-weight:600; }
+  .concept { display:none; }
+  .concept.active { display:block; }
+  .desc { padding:14px 20px; margin:14px 20px; background:#f0faf6; border-radius:8px; border-left:4px solid #1a1a2e; font-size:13px; line-height:1.6; }
+  .desc h3 { font-size:14px; margin-bottom:4px; }
+  .mock { border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin:14px 20px; background:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.04); }
+  .mh { background:#fff; padding:0 20px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; height:48px; font-size:13px; }
+  .logo { font-size:18px; font-weight:700; color:#1a1a2e; letter-spacing:1px; }
+  .ni { padding:6px 10px; border-radius:6px; color:#888; font-size:12px; }
+  .ni.a { background:#f0f0f0; color:#1a1a2e; font-weight:600; }
+  .c { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:16px; }
+  .cmd { display:flex; gap:6px; }
+  .cmd input { flex:1; padding:10px 14px; border:1px solid #ddd; border-radius:8px; font-size:13px; outline:none; }
+  .cmd button { padding:10px 18px; background:#1a1a2e; color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; }
+  .brief { padding:12px; background:#fafbfc; border-radius:8px; margin-bottom:6px; font-size:12px; line-height:1.7; color:#555; }
+  .bl { font-size:11px; font-weight:600; margin-bottom:3px; }
+  .sched { padding:6px 10px; border-left:3px solid #e5e7eb; margin-bottom:4px; font-size:12px; }
+  .sched.now { border-color:#4285f4; background:#f8fbff; }
+  .sched.soon { border-color:#fbbc05; }
+  .badge { display:inline-block; padding:2px 6px; border-radius:8px; font-size:9px; font-weight:500; }
+  .bg { background:#28a74515; color:#28a745; }
+  .by { background:#fbbc0515; color:#856404; }
+  .br { background:#dc354515; color:#dc3545; }
+  .bb { background:#4285f415; color:#4285f4; }
+  /* 共通下部（ブリーフ+スケジュール） */
+  .bottom { padding:16px 20px; display:grid; grid-template-columns:3fr 2fr; gap:14px; }
+</style>
+</head>
+<body>
+
+<div class="tab-nav">
+  <span style="color:#fff;font-weight:700;padding:8px 10px;font-size:12px;">KPIバー案</span>
+  <button class="tab-btn active" onclick="show(0)">1: 数字+ラベル横並び</button>
+  <button class="tab-btn" onclick="show(1)">2: アイコン+数字</button>
+  <button class="tab-btn" onclick="show(2)">3: プログレスバー</button>
+  <button class="tab-btn" onclick="show(3)">4: ミニカード</button>
+  <button class="tab-btn" onclick="show(4)">5: ドット+数字</button>
+  <button class="tab-btn" onclick="show(5)">6: 比較表示</button>
+  <button class="tab-btn" onclick="show(6)">7: グラデーション</button>
+  <button class="tab-btn" onclick="show(7)">8: タグ風</button>
+  <button class="tab-btn" onclick="show(8)">9: スパークライン</button>
+  <button class="tab-btn" onclick="show(9)">10: ステータスバー</button>
+</div>
+
+<!-- ===== 1: 数字+ラベル横並び（現行ベース） ===== -->
+<div class="concept active" id="c0">
+  <div class="desc"><h3>1: 数字+ラベル横並び</h3>現行B案そのまま。数字が大きく、ラベルが小さい。シンプル。</div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div><span class="ni a">▣</span><span class="ni">◻</span><span class="ni">▨</span><span class="ni">▦</span><span class="ni">◷</span></div><span class="badge br">△ 2</span></div>
+    <div style="display:flex;gap:0;border-bottom:1px solid #e5e7eb;font-size:12px;">
+      <div style="flex:1;padding:10px 16px;text-align:center;border-right:1px solid #f0f0f0;"><span style="font-weight:700;font-size:16px;">47</span> <span style="color:#888;font-size:11px;">実行</span></div>
+      <div style="flex:1;padding:10px 16px;text-align:center;border-right:1px solid #f0f0f0;"><span style="font-weight:700;font-size:16px;color:#28a745;">¥1.2M</span> <span style="color:#888;font-size:11px;">削減</span></div>
+      <div style="flex:1;padding:10px 16px;text-align:center;border-right:1px solid #f0f0f0;"><span style="font-weight:700;font-size:16px;">5</span> <span style="color:#888;font-size:11px;">ユーザー</span></div>
+      <div style="flex:1;padding:10px 16px;text-align:center;"><span style="font-weight:700;font-size:16px;color:#28a745;">HIGH</span> <span style="color:#888;font-size:11px;">活用度</span></div>
+    </div>
+    <div style="padding:16px 20px;text-align:center;"><div class="cmd" style="max-width:600px;margin:0 auto;"><input placeholder="◆ 参謀AIに指示..." /><button>送信</button></div></div>
+    <div class="bottom">
+      <div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;"><div class="bl" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。経費締切明後日。</div><div class="brief" style="border-left:3px solid #4285f4;"><div class="bl" style="color:#4285f4;">-> 提案</div>取締役会資料の着手をお勧めします。</div></div>
+      <div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◷ スケジュール</div><div class="sched now">10:00 A社商談 <span class="badge bb">準備済</span></div><div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div><div class="sched">16:00 部門MTG</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 2: アイコン+数字 ===== -->
+<div class="concept" id="c1">
+  <div class="desc"><h3>2: モノクロアイコン + 数字 + 変化率</h3>各KPIにアイコンと前月比変化を追加。情報量UP。</div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div><span class="ni a">▣</span><span class="ni">◻</span></div><span class="badge br">△ 2</span></div>
+    <div style="display:flex;gap:0;border-bottom:1px solid #e5e7eb;">
+      <div style="flex:1;padding:10px 16px;border-right:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;"><span style="font-size:16px;color:#888;">◇</span><div><div style="font-size:15px;font-weight:700;">47</div><div style="font-size:10px;color:#888;">実行回数</div></div><span style="font-size:10px;color:#28a745;">+12%</span></div>
+      <div style="flex:1;padding:10px 16px;border-right:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;"><span style="font-size:16px;color:#888;">▥</span><div><div style="font-size:15px;font-weight:700;color:#28a745;">¥1.2M</div><div style="font-size:10px;color:#888;">コスト削減</div></div><span style="font-size:10px;color:#28a745;">+8%</span></div>
+      <div style="flex:1;padding:10px 16px;border-right:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;"><span style="font-size:16px;color:#888;">●</span><div><div style="font-size:15px;font-weight:700;">5</div><div style="font-size:10px;color:#888;">ユーザー</div></div></div>
+      <div style="flex:1;padding:10px 16px;display:flex;align-items:center;gap:8px;"><span style="font-size:16px;color:#888;">▣</span><div><div style="font-size:15px;font-weight:700;color:#28a745;">HIGH</div><div style="font-size:10px;color:#888;">活用度</div></div></div>
+    </div>
+    <div style="padding:16px 20px;text-align:center;"><div class="cmd" style="max-width:600px;margin:0 auto;"><input placeholder="◆ 参謀AIに指示..." /><button>送信</button></div></div>
+    <div class="bottom"><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;"><div class="bl" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。</div><div class="brief" style="border-left:3px solid #4285f4;"><div class="bl" style="color:#4285f4;">-> 提案</div>取締役会資料着手を。</div></div><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◷ スケジュール</div><div class="sched now">10:00 A社 <span class="badge bb">準備済</span></div><div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div></div></div>
+  </div>
+</div>
+
+<!-- ===== 3: プログレスバー ===== -->
+<div class="concept" id="c2">
+  <div class="desc"><h3>3: プログレスバー付き</h3>予算消化率やAPI利用率をバーで可視化。上限が見える。</div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div><span class="ni a">▣</span><span class="ni">◻</span></div><span class="badge br">△ 2</span></div>
+    <div style="display:flex;gap:0;border-bottom:1px solid #e5e7eb;padding:8px 0;">
+      <div style="flex:1;padding:4px 16px;border-right:1px solid #f0f0f0;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:3px;"><span>API利用</span><span>¥8,500 / ¥25,000</span></div><div style="height:4px;background:#e5e7eb;border-radius:2px;"><div style="height:4px;background:#4285f4;border-radius:2px;width:34%;"></div></div></div>
+      <div style="flex:1;padding:4px 16px;border-right:1px solid #f0f0f0;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:3px;"><span>実行数</span><span>47回</span></div><div style="height:4px;background:#e5e7eb;border-radius:2px;"><div style="height:4px;background:#28a745;border-radius:2px;width:70%;"></div></div></div>
+      <div style="flex:1;padding:4px 16px;border-right:1px solid #f0f0f0;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:3px;"><span>削減額</span><span style="color:#28a745;font-weight:600;">¥1.2M</span></div><div style="height:4px;background:#e5e7eb;border-radius:2px;"><div style="height:4px;background:#28a745;border-radius:2px;width:85%;"></div></div></div>
+      <div style="flex:1;padding:4px 16px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:3px;"><span>活用度</span><span style="color:#28a745;font-weight:600;">HIGH</span></div><div style="height:4px;background:#e5e7eb;border-radius:2px;"><div style="height:4px;background:#28a745;border-radius:2px;width:90%;"></div></div></div>
+    </div>
+    <div style="padding:16px 20px;text-align:center;"><div class="cmd" style="max-width:600px;margin:0 auto;"><input placeholder="◆ 参謀AIに指示..." /><button>送信</button></div></div>
+    <div class="bottom"><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;"><div class="bl" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。</div></div><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◷ スケジュール</div><div class="sched now">10:00 A社 <span class="badge bb">準備済</span></div><div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div></div></div>
+  </div>
+</div>
+
+<!-- ===== 4: ミニカード ===== -->
+<div class="concept" id="c3">
+  <div class="desc"><h3>4: ミニカード（上ボーダー色分け）</h3>KPIバーの代わりに小さなカードが横並び。ヘッダーとコマンドの間。</div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div><span class="ni a">▣</span><span class="ni">◻</span></div><span class="badge br">△ 2</span></div>
+    <div style="display:flex;gap:8px;padding:12px 20px;border-bottom:1px solid #e5e7eb;">
+      <div style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;border-top:3px solid #1a1a2e;text-align:center;"><div style="font-size:20px;font-weight:700;">47</div><div style="font-size:10px;color:#888;">実行</div></div>
+      <div style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;border-top:3px solid #28a745;text-align:center;"><div style="font-size:20px;font-weight:700;color:#28a745;">¥1.2M</div><div style="font-size:10px;color:#888;">削減</div></div>
+      <div style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;border-top:3px solid #4285f4;text-align:center;"><div style="font-size:20px;font-weight:700;">5</div><div style="font-size:10px;color:#888;">ユーザー</div></div>
+      <div style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;border-top:3px solid #28a745;text-align:center;"><div style="font-size:20px;font-weight:700;color:#28a745;">HIGH</div><div style="font-size:10px;color:#888;">活用度</div></div>
+      <div style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid #dc3545;border-top:3px solid #dc3545;text-align:center;"><div style="font-size:20px;font-weight:700;color:#dc3545;">2</div><div style="font-size:10px;color:#888;">承認待ち</div></div>
+    </div>
+    <div style="padding:16px 20px;text-align:center;"><div class="cmd" style="max-width:600px;margin:0 auto;"><input placeholder="◆ 参謀AIに指示..." /><button>送信</button></div></div>
+    <div class="bottom"><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;"><div class="bl" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。経費締切明後日。</div></div><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◷ スケジュール</div><div class="sched now">10:00 A社 <span class="badge bb">準備済</span></div><div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div></div></div>
+  </div>
+</div>
+
+<!-- ===== 5: ドット+数字 ===== -->
+<div class="concept" id="c4">
+  <div class="desc"><h3>5: ドットインジケーター</h3>数字の前に色付きドット。ステータスが一目で分かる。最小限の装飾。</div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div><span class="ni a">▣</span><span class="ni">◻</span></div></div>
+    <div style="display:flex;gap:16px;padding:10px 20px;border-bottom:1px solid #e5e7eb;font-size:13px;align-items:center;">
+      <div style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#1a1a2e;display:inline-block;"></span><span style="font-weight:600;">47</span><span style="color:#888;font-size:11px;">実行</span></div>
+      <div style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#28a745;display:inline-block;"></span><span style="font-weight:600;color:#28a745;">¥1.2M</span><span style="color:#888;font-size:11px;">削減</span></div>
+      <div style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#4285f4;display:inline-block;"></span><span style="font-weight:600;">5</span><span style="color:#888;font-size:11px;">ユーザー</span></div>
+      <div style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#28a745;display:inline-block;"></span><span style="font-weight:600;color:#28a745;">HIGH</span><span style="color:#888;font-size:11px;">活用度</span></div>
+      <div style="margin-left:auto;"><span class="badge br">△ 2 承認待ち</span></div>
+    </div>
+    <div style="padding:16px 20px;text-align:center;"><div class="cmd" style="max-width:600px;margin:0 auto;"><input placeholder="◆ 参謀AIに指示..." /><button>送信</button></div></div>
+    <div class="bottom"><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;"><div class="bl" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。</div><div class="brief" style="border-left:3px solid #4285f4;"><div class="bl" style="color:#4285f4;">-> 提案</div>取締役会資料着手を。</div></div><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◷ スケジュール</div><div class="sched now">10:00 A社 <span class="badge bb">準備済</span></div><div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div></div></div>
+  </div>
+</div>
+
+<!-- ===== 6: 比較表示 ===== -->
+<div class="concept" id="c5">
+  <div class="desc"><h3>6: 今月 vs 先月 比較</h3>各KPIに先月比を表示。成長が見える。</div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div><span class="ni a">▣</span><span class="ni">◻</span></div><span class="badge br">△ 2</span></div>
+    <div style="display:flex;gap:0;border-bottom:1px solid #e5e7eb;">
+      <div style="flex:1;padding:8px 16px;text-align:center;border-right:1px solid #f0f0f0;"><div style="font-size:16px;font-weight:700;">47</div><div style="font-size:10px;color:#888;">実行（先月: 38）</div><div style="font-size:10px;color:#28a745;">+24% ↑</div></div>
+      <div style="flex:1;padding:8px 16px;text-align:center;border-right:1px solid #f0f0f0;"><div style="font-size:16px;font-weight:700;color:#28a745;">¥1.2M</div><div style="font-size:10px;color:#888;">削減（先月: ¥980K）</div><div style="font-size:10px;color:#28a745;">+22% ↑</div></div>
+      <div style="flex:1;padding:8px 16px;text-align:center;border-right:1px solid #f0f0f0;"><div style="font-size:16px;font-weight:700;">5</div><div style="font-size:10px;color:#888;">ユーザー（先月: 3）</div><div style="font-size:10px;color:#28a745;">+2 ↑</div></div>
+      <div style="flex:1;padding:8px 16px;text-align:center;"><div style="font-size:16px;font-weight:700;color:#28a745;">HIGH</div><div style="font-size:10px;color:#888;">活用度（先月: MED）</div><div style="font-size:10px;color:#28a745;">↑</div></div>
+    </div>
+    <div style="padding:16px 20px;text-align:center;"><div class="cmd" style="max-width:600px;margin:0 auto;"><input placeholder="◆ 参謀AIに指示..." /><button>送信</button></div></div>
+    <div class="bottom"><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;"><div class="bl" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。</div></div><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◷ スケジュール</div><div class="sched now">10:00 A社 <span class="badge bb">準備済</span></div><div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div></div></div>
+  </div>
+</div>
+
+<!-- ===== 7: グラデーション ===== -->
+<div class="concept" id="c6">
+  <div class="desc"><h3>7: グラデーションバー</h3>KPIバー全体が左から右へグラデーション。背景色でステータスを表現。</div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div><span class="ni a">▣</span><span class="ni">◻</span></div><span class="badge br">△ 2</span></div>
+    <div style="display:flex;gap:0;border-bottom:1px solid #e5e7eb;background:linear-gradient(90deg,#1a1a2e08 0%,#28a74508 50%,#4285f408 100%);">
+      <div style="flex:1;padding:10px 16px;text-align:center;"><div style="font-size:16px;font-weight:700;">47</div><div style="font-size:10px;color:#888;">実行</div></div>
+      <div style="flex:1;padding:10px 16px;text-align:center;"><div style="font-size:16px;font-weight:700;color:#28a745;">¥1.2M</div><div style="font-size:10px;color:#888;">削減</div></div>
+      <div style="flex:1;padding:10px 16px;text-align:center;"><div style="font-size:16px;font-weight:700;">5</div><div style="font-size:10px;color:#888;">ユーザー</div></div>
+      <div style="flex:1;padding:10px 16px;text-align:center;"><div style="font-size:16px;font-weight:700;color:#28a745;">HIGH</div><div style="font-size:10px;color:#888;">活用度</div></div>
+    </div>
+    <div style="padding:16px 20px;text-align:center;"><div class="cmd" style="max-width:600px;margin:0 auto;"><input placeholder="◆ 参謀AIに指示..." /><button>送信</button></div></div>
+    <div class="bottom"><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;"><div class="bl" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。</div></div><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◷ スケジュール</div><div class="sched now">10:00 A社 <span class="badge bb">準備済</span></div></div></div>
+  </div>
+</div>
+
+<!-- ===== 8: タグ風 ===== -->
+<div class="concept" id="c7">
+  <div class="desc"><h3>8: タグ/ピル風</h3>KPIをタグ（ピル）形式で並べる。コンパクトで邪魔にならない。</div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div><span class="ni a">▣</span><span class="ni">◻</span></div></div>
+    <div style="padding:8px 20px;border-bottom:1px solid #e5e7eb;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      <span style="padding:4px 12px;background:#1a1a2e08;border:1px solid #1a1a2e20;border-radius:16px;font-size:12px;font-weight:500;">◇ 47 実行</span>
+      <span style="padding:4px 12px;background:#28a74508;border:1px solid #28a74520;border-radius:16px;font-size:12px;font-weight:500;color:#28a745;">▥ ¥1.2M 削減</span>
+      <span style="padding:4px 12px;background:#4285f408;border:1px solid #4285f420;border-radius:16px;font-size:12px;">● 5 ユーザー</span>
+      <span style="padding:4px 12px;background:#28a74508;border:1px solid #28a74520;border-radius:16px;font-size:12px;color:#28a745;">▣ HIGH</span>
+      <span style="margin-left:auto;padding:4px 12px;background:#dc354508;border:1px solid #dc354520;border-radius:16px;font-size:12px;color:#dc3545;">△ 2 承認待ち</span>
+    </div>
+    <div style="padding:16px 20px;text-align:center;"><div class="cmd" style="max-width:600px;margin:0 auto;"><input placeholder="◆ 参謀AIに指示..." /><button>送信</button></div></div>
+    <div class="bottom"><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;"><div class="bl" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。</div><div class="brief" style="border-left:3px solid #4285f4;"><div class="bl" style="color:#4285f4;">-> 提案</div>取締役会資料着手を。</div></div><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◷ スケジュール</div><div class="sched now">10:00 A社 <span class="badge bb">準備済</span></div><div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div></div></div>
+  </div>
+</div>
+
+<!-- ===== 9: スパークライン ===== -->
+<div class="concept" id="c8">
+  <div class="desc"><h3>9: スパークライン（ミニグラフ）</h3>各KPIの横に7日分のミニグラフ。トレンドが見える。</div>
+  <div class="mock">
+    <div class="mh"><span class="logo">SANBO AI</span><div><span class="ni a">▣</span><span class="ni">◻</span></div><span class="badge br">△ 2</span></div>
+    <div style="display:flex;gap:0;border-bottom:1px solid #e5e7eb;">
+      <div style="flex:1;padding:8px 14px;border-right:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;">
+        <div><div style="font-size:15px;font-weight:700;">47</div><div style="font-size:10px;color:#888;">実行</div></div>
+        <svg width="50" height="20" style="margin-left:auto;"><polyline points="0,18 8,14 16,16 24,10 32,12 40,6 48,4" fill="none" stroke="#4285f4" stroke-width="1.5"/></svg>
+      </div>
+      <div style="flex:1;padding:8px 14px;border-right:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;">
+        <div><div style="font-size:15px;font-weight:700;color:#28a745;">¥1.2M</div><div style="font-size:10px;color:#888;">削減</div></div>
+        <svg width="50" height="20" style="margin-left:auto;"><polyline points="0,16 8,14 16,12 24,10 32,8 40,6 48,4" fill="none" stroke="#28a745" stroke-width="1.5"/></svg>
+      </div>
+      <div style="flex:1;padding:8px 14px;border-right:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;">
+        <div><div style="font-size:15px;font-weight:700;">5</div><div style="font-size:10px;color:#888;">ユーザー</div></div>
+        <svg width="50" height="20" style="margin-left:auto;"><polyline points="0,16 8,16 16,16 24,12 32,12 40,8 48,8" fill="none" stroke="#5f6368" stroke-width="1.5"/></svg>
+      </div>
+      <div style="flex:1;padding:8px 14px;display:flex;align-items:center;gap:8px;">
+        <div><div style="font-size:15px;font-weight:700;color:#28a745;">HIGH</div><div style="font-size:10px;color:#888;">活用度</div></div>
+      </div>
+    </div>
+    <div style="padding:16px 20px;text-align:center;"><div class="cmd" style="max-width:600px;margin:0 auto;"><input placeholder="◆ 参謀AIに指示..." /><button>送信</button></div></div>
+    <div class="bottom"><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;"><div class="bl" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。</div></div><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◷ スケジュール</div><div class="sched now">10:00 A社 <span class="badge bb">準備済</span></div><div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div></div></div>
+  </div>
+</div>
+
+<!-- ===== 10: ステータスバー ===== -->
+<div class="concept" id="c9">
+  <div class="desc"><h3>10: ステータスバー（ヘッダー統合）</h3>KPIをヘッダーに統合。ナビの右側にインライン表示。超コンパクト。</div>
+  <div class="mock">
+    <div style="background:#fff;padding:0 20px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;height:48px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="logo">SANBO AI</span>
+        <span class="ni a">▣</span><span class="ni">◻</span><span class="ni">▨</span><span class="ni">▦</span><span class="ni">◷</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;font-size:11px;color:#888;">
+        <span><span style="font-weight:600;color:#1a1a2e;">47</span> 実行</span>
+        <span><span style="font-weight:600;color:#28a745;">¥1.2M</span> 削減</span>
+        <span><span style="font-weight:600;">5</span> ユーザー</span>
+        <span style="font-weight:600;color:#28a745;">HIGH</span>
+        <span class="badge br">△ 2</span>
+        <div style="width:24px;height:24px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:10px;">●</div>
+      </div>
+    </div>
+    <div style="padding:16px 20px;text-align:center;"><div style="font-size:13px;color:#888;margin-bottom:6px;">◆ 参謀AI</div><div class="cmd" style="max-width:600px;margin:0 auto;"><input placeholder="何でも指示してください..." style="padding:12px 18px;font-size:14px;border-radius:10px;" /><button style="padding:12px 20px;border-radius:10px;">送信</button></div></div>
+    <div class="bottom"><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◆ ブリーフ</div><div class="brief" style="border-left:3px solid #dc3545;"><div class="bl" style="color:#dc3545;">// 要対応</div>A社メール承認待ち。経費締切明後日。</div><div class="brief" style="border-left:3px solid #4285f4;"><div class="bl" style="color:#4285f4;">-> 提案</div>取締役会資料の着手をお勧めします。</div></div><div class="c"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">◷ スケジュール</div><div class="sched now">10:00 A社商談 <span class="badge bb">準備済</span></div><div class="sched soon">14:00 取締役会 <span class="badge by">作成中</span></div><div class="sched">16:00 部門MTG</div></div></div>
+  </div>
+</div>
+
+<script>
+function show(n) {
+  document.querySelectorAll('.concept').forEach((c,i) => c.classList.toggle('active', i===n));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===n));
+}
+</script>
+</body>
+</html>
