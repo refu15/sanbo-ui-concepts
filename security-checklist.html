@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SANBO AI セキュリティチェックシート v1.0 — 650項目</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter','Noto Sans JP',system-ui,sans-serif; background: #f8f9fb; color: #333; line-height: 1.6; }
+  .header { background: #1a1a2e; color: #fff; padding: 32px 24px; }
+  .header h1 { font-size: 24px; margin-bottom: 4px; }
+  .header p { font-size: 13px; color: #aaa; }
+  .stats { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .stat { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 100px; }
+  .stat .val { font-size: 28px; font-weight: 700; }
+  .stat .lbl { font-size: 10px; color: #aaa; margin-top: 2px; }
+  .controls { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid #e5e7eb; padding: 12px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .controls input, .controls select { padding: 7px 12px; border-radius: 6px; border: 1px solid #e5e7eb; font-size: 13px; outline: none; }
+  .controls input { flex: 1; min-width: 200px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+  .badge-done { background: #dcfce7; color: #166534; }
+  .badge-partial { background: #fef9c3; color: #854d0e; }
+  .badge-todo { background: #fecaca; color: #991b1b; }
+  .badge-na { background: #f3f4f6; color: #6b7280; }
+  .content { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  .section { margin-bottom: 32px; }
+  .section-head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 12px 16px; background: #fff; border-radius: 10px 10px 0 0; border: 1px solid #e5e7eb; border-bottom: none; }
+  .section-head h2 { font-size: 16px; color: #1a1a2e; display: flex; align-items: center; gap: 8px; }
+  .section-head .count { font-size: 12px; color: #888; }
+  .section-body { background: #fff; border: 1px solid #e5e7eb; border-radius: 0 0 10px 10px; overflow: hidden; }
+  .item { display: flex; align-items: flex-start; padding: 10px 16px; border-bottom: 1px solid #f5f5f5; font-size: 13px; gap: 12px; }
+  .item:hover { background: #fafbfc; }
+  .item:last-child { border-bottom: none; }
+  .item .id { width: 80px; flex-shrink: 0; font-family: monospace; font-size: 11px; color: #888; padding-top: 2px; }
+  .item .desc { flex: 1; }
+  .item .source { width: 80px; flex-shrink: 0; font-size: 10px; color: #aaa; text-align: right; }
+  .item .status { width: 70px; flex-shrink: 0; text-align: center; }
+  .sub { font-size: 11px; color: #888; margin-top: 2px; }
+  .progress-bar { height: 6px; background: #f0f0f0; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; }
+  .category-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; }
+  .cat-tab { padding: 5px 12px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; font-size: 11px; color: #555; transition: all 0.15s; }
+  .cat-tab.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+  .footer { text-align: center; padding: 24px; color: #aaa; font-size: 11px; }
+  @media (max-width: 768px) { .item .source { display: none; } .item .id { width: 60px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SANBO AI セキュリティチェックシート v1.0</h1>
+  <p>IPA第7版 / OWASP ASVS L2 / OWASP Top 10 LLM 2025 / ISO 27001:2022 / NIST SP 800-53 Rev.5 / SOC2 Type II / 個人情報保護法 / AI事業者GL v1.2</p>
+  <div class="stats" id="stats"></div>
+</div>
+
+<div class="controls">
+  <input type="text" id="search" placeholder="検索（例: 認証, XSS, テナント, 暗号化...）" oninput="filterItems()">
+  <select id="statusFilter" onchange="filterItems()">
+    <option value="all">全て</option>
+    <option value="done">対応済</option>
+    <option value="partial">一部対応</option>
+    <option value="todo">未対応</option>
+  </select>
+  <select id="sourceFilter" onchange="filterItems()">
+    <option value="all">全基準</option>
+    <option value="ASVS">OWASP ASVS</option>
+    <option value="ISO27001">ISO 27001</option>
+    <option value="NIST">NIST 800-53</option>
+    <option value="LLM">LLM Top 10</option>
+    <option value="IPA">IPA</option>
+    <option value="SOC2">SOC2</option>
+    <option value="PII">個人情報保護法</option>
+    <option value="AIGL">AI事業者GL</option>
+  </select>
+  <select id="priorityFilter" onchange="filterItems()">
+    <option value="all">全優先度</option>
+    <option value="P0">P0 必須</option>
+    <option value="P1">P1 重要</option>
+    <option value="P2">P2 推奨</option>
+  </select>
+</div>
+
+<div class="content">
+  <div class="category-tabs" id="categoryTabs"></div>
+  <div id="sections"></div>
+</div>
+
+<div class="footer">
+  SANBO AI Security Checklist v1.0 — Generated 2026-04-18 — VAIZO Inc. Confidential<br>
+  準拠基準: IPA / OWASP ASVS v4.0.3 / OWASP Top 10 LLM 2025 / ISO 27001:2022 / NIST SP 800-53 Rev.5 / SOC2 / 個人情報保護法 / AI事業者GL v1.2
+</div>
+
+<script>
+const ITEMS = [
+  // ── 1. OWASP ASVS v4.0.3 L2 (267項目) ──
+  // V1: Architecture
+  {id:"V1.1.1",cat:"アーキテクチャ",desc:"アプリケーションのセキュリティアーキテクチャが文書化されている",source:"ASVS",status:"partial",priority:"P1",sub:"脅威モデリング含む"},
+  {id:"V1.1.2",cat:"アーキテクチャ",desc:"全てのアプリケーションコンポーネント（フロントエンド、バックエンド、データベース）が定義されている",source:"ASVS",status:"done",priority:"P1"},
+  {id:"V1.1.3",cat:"アーキテクチャ",desc:"高レベルのアーキテクチャ図が最新の状態で維持されている",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V1.1.4",cat:"アーキテクチャ",desc:"全てのデータ資産と、それらの機密性・完全性の分類が定義されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V1.1.5",cat:"アーキテクチャ",desc:"全てのアプリケーションコンポーネントが、提供するビジネス機能やセキュリティ機能の観点から定義されている",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V1.1.6",cat:"アーキテクチャ",desc:"脅威モデリングが実施され、特定された脅威に対する対策が定義されている",source:"ASVS",status:"todo",priority:"P1"},
+  {id:"V1.1.7",cat:"アーキテクチャ",desc:"全てのセキュリティコントロールが集中管理されている",source:"ASVS",status:"partial",priority:"P1"},
+
+  // V2: Authentication (26項目)
+  {id:"V2.1.1",cat:"認証",desc:"ユーザーが設定するパスワードは最低12文字以上である",source:"ASVS",status:"done",priority:"P0",sub:"Google OAuth使用のため直接適用外"},
+  {id:"V2.1.2",cat:"認証",desc:"64文字以上のパスワードが許可されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.1.3",cat:"認証",desc:"パスワードの切り詰めが行われない",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.1.4",cat:"認証",desc:"Unicodeを含む任意の文字がパスワードに使用できる",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.1.5",cat:"認証",desc:"ユーザーがパスワードを変更できる",source:"ASVS",status:"done",priority:"P0",sub:"Google OAuth管理"},
+  {id:"V2.1.6",cat:"認証",desc:"パスワード変更時に現在のパスワードと新しいパスワードの入力が要求される",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.1.7",cat:"認証",desc:"パスワードが既知の漏洩パスワードリストと照合される",source:"ASVS",status:"todo",priority:"P1"},
+  {id:"V2.1.8",cat:"認証",desc:"パスワード強度メーターが提供されている",source:"ASVS",status:"todo",priority:"P2"},
+  {id:"V2.1.9",cat:"認証",desc:"パスワードの構成ルール（大文字必須等）が強制されない",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.1.10",cat:"認証",desc:"定期的なパスワード変更の強制がない",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.1.11",cat:"認証",desc:"パスワード入力時に「表示」トグルがある",source:"ASVS",status:"done",priority:"P2"},
+  {id:"V2.1.12",cat:"認証",desc:"パスワード入力フィールドでペーストが許可されている",source:"ASVS",status:"done",priority:"P2"},
+  {id:"V2.2.1",cat:"認証",desc:"アンチオートメーション制御が実装されている（ブルートフォース対策）",source:"ASVS",status:"todo",priority:"P0",sub:"レート制限未実装"},
+  {id:"V2.2.2",cat:"認証",desc:"弱い認証器（SMS OTP等）の使用が最小限に抑えられている",source:"ASVS",status:"done",priority:"P1",sub:"TOTP使用"},
+  {id:"V2.2.3",cat:"認証",desc:"認証情報のリセット後に安全な通知が送信される",source:"ASVS",status:"todo",priority:"P1"},
+  {id:"V2.2.4",cat:"認証",desc:"認証試行のレート制限が実装されている",source:"ASVS",status:"todo",priority:"P0"},
+  {id:"V2.2.5",cat:"認証",desc:"ログイン失敗時のエラーメッセージがユーザー名の存在を漏らさない",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V2.3.1",cat:"認証",desc:"システムが生成する初期パスワードやアクティベーションコードは安全にランダム生成される",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.3.2",cat:"認証",desc:"初期パスワードは一定期間後に期限切れとなる",source:"ASVS",status:"done",priority:"P1"},
+  {id:"V2.3.3",cat:"認証",desc:"パスワードの回復時にパスワードのヒントを表示しない",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.4.1",cat:"認証",desc:"パスワードはbcrypt/scrypt/argon2id等の適切なハッシュ関数で保存されている",source:"ASVS",status:"done",priority:"P0",sub:"Google OAuth管理"},
+  {id:"V2.5.1",cat:"認証",desc:"システム生成の初期またはリカバリーシークレットはランダムに生成される",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.5.2",cat:"認証",desc:"パスワードのヒントや知識ベースの認証が使用されていない",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.5.3",cat:"認証",desc:"パスワードリカバリーは現在のパスワードを漏らさない",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.5.4",cat:"認証",desc:"共有アカウントやデフォルトアカウントが存在しない",source:"ASVS",status:"partial",priority:"P0",sub:"demo-tokenアカウントあり（本番無効化済み）"},
+  {id:"V2.5.5",cat:"認証",desc:"認証要素が変更された場合、ユーザーに通知される",source:"ASVS",status:"todo",priority:"P1"},
+  {id:"V2.5.6",cat:"認証",desc:"パスワードリカバリーは安全なチャネル経由で提供される",source:"ASVS",status:"done",priority:"P0",sub:"Google OAuth管理"},
+  {id:"V2.7.1",cat:"認証",desc:"OTPは平文で通信されない（メール・SMS非推奨）",source:"ASVS",status:"done",priority:"P0",sub:"TOTP（アプリ生成）使用"},
+  {id:"V2.7.2",cat:"認証",desc:"OTPの有効期限が適切に設定されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.7.3",cat:"認証",desc:"OTPの再利用が防止されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V2.7.4",cat:"認証",desc:"OTP生成デバイスが適切に管理されている",source:"ASVS",status:"done",priority:"P1"},
+  {id:"V2.8.1",cat:"認証",desc:"時間ベースのOTP（TOTP）は短い有効期間を持つ",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.8.2",cat:"認証",desc:"TOTPの対称鍵は安全に保管されている",source:"ASVS",status:"partial",priority:"P0",sub:"DB平文保存→KMS暗号化必要"},
+  {id:"V2.8.3",cat:"認証",desc:"暗号化認証器のシードは適切にランダム生成されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.9.1",cat:"認証",desc:"暗号化デバイス認証にはチャレンジ・ナンスが使用されている",source:"ASVS",status:"done",priority:"P1",sub:"JWT exp + iat"},
+  {id:"V2.10.1",cat:"認証",desc:"APIキーやサービス間認証情報がソースコードに含まれていない",source:"ASVS",status:"partial",priority:"P0",sub:"一部.env依存"},
+  {id:"V2.10.2",cat:"認証",desc:"APIキーに十分なエントロピーがある",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V2.10.3",cat:"認証",desc:"APIキーの権限が最小限に制限されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V2.10.4",cat:"認証",desc:"APIキーのローテーション機能がある",source:"ASVS",status:"todo",priority:"P1"},
+
+  // V3: Session Management (18項目)
+  {id:"V3.1.1",cat:"セッション管理",desc:"セッションIDはURLパラメータに含まれない",source:"ASVS",status:"done",priority:"P0",sub:"JWT Bearer token使用"},
+  {id:"V3.2.1",cat:"セッション管理",desc:"ログイン成功時に新しいセッションIDが生成される",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V3.2.2",cat:"セッション管理",desc:"セッションIDは最低64ビットのエントロピーを持つ",source:"ASVS",status:"done",priority:"P0",sub:"JWT HS256"},
+  {id:"V3.2.3",cat:"セッション管理",desc:"セッションIDはSecure属性付きCookieに保存される",source:"ASVS",status:"partial",priority:"P0",sub:"localStorage使用→Secure Cookie推奨"},
+  {id:"V3.2.4",cat:"セッション管理",desc:"セッションIDは承認されたセッション管理メカニズムで生成される",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V3.3.1",cat:"セッション管理",desc:"ログアウト時にセッションが無効化される",source:"ASVS",status:"partial",priority:"P0",sub:"クライアント側のみ。サーバー側ブラックリスト未実装"},
+  {id:"V3.3.2",cat:"セッション管理",desc:"認証トークンが失効した場合、関連するセッションが無効化される",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V3.3.3",cat:"セッション管理",desc:"管理者がアクティブなセッションを終了する機能がある",source:"ASVS",status:"todo",priority:"P1"},
+  {id:"V3.3.4",cat:"セッション管理",desc:"パスワード変更後にすべてのアクティブセッションが終了される",source:"ASVS",status:"todo",priority:"P1"},
+  {id:"V3.4.1",cat:"セッション管理",desc:"Cookieに基づくセッショントークンにSecure属性が設定されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V3.4.2",cat:"セッション管理",desc:"Cookieに基づくセッショントークンにHttpOnly属性が設定されている",source:"ASVS",status:"partial",priority:"P0",sub:"localStorage使用"},
+  {id:"V3.4.3",cat:"セッション管理",desc:"Cookieに基づくセッショントークンにSameSite属性が設定されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V3.4.4",cat:"セッション管理",desc:"Cookieの有効パスが適切に制限されている",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V3.4.5",cat:"セッション管理",desc:"Cookieのドメイン属性が適切に設定されている",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V3.5.1",cat:"セッション管理",desc:"OAuthとリフレッシュトークンの有効期間が適切に設定されている",source:"ASVS",status:"partial",priority:"P0",sub:"JWT 24h、リフレッシュ未実装"},
+  {id:"V3.5.2",cat:"セッション管理",desc:"リフレッシュトークンはセッション維持に使用されている",source:"ASVS",status:"todo",priority:"P1"},
+  {id:"V3.5.3",cat:"セッション管理",desc:"セッションの絶対タイムアウトが設定されている",source:"ASVS",status:"done",priority:"P0",sub:"JWT exp 24h"},
+  {id:"V3.7.1",cat:"セッション管理",desc:"アイドルタイムアウトが実装されている",source:"ASVS",status:"todo",priority:"P1"},
+
+  // V4: Access Control (16項目)
+  {id:"V4.1.1",cat:"アクセス制御",desc:"アプリケーションが全てのAPIやコントローラでアクセス制御ルールを適用している",source:"ASVS",status:"done",priority:"P0",sub:"get_current_user依存関係"},
+  {id:"V4.1.2",cat:"アクセス制御",desc:"クライアント側のアクセス制御チェックに依存していない",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V4.1.3",cat:"アクセス制御",desc:"最小権限原則が適用されている",source:"ASVS",status:"partial",priority:"P0",sub:"ロール分離あるが細粒度不足"},
+  {id:"V4.1.4",cat:"アクセス制御",desc:"ルートベースまたは属性ベースのアクセス制御が使用されている",source:"ASVS",status:"done",priority:"P0",sub:"RBAC（owner/executive/operator）"},
+  {id:"V4.1.5",cat:"アクセス制御",desc:"アクセス制御がセキュアなデフォルト（デフォルト拒否）で実装されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V4.2.1",cat:"アクセス制御",desc:"機密データやAPIはIDOR攻撃から保護されている",source:"ASVS",status:"done",priority:"P0",sub:"tenant_idフィルタ"},
+  {id:"V4.2.2",cat:"アクセス制御",desc:"アプリケーションがCSRF攻撃から保護されている",source:"ASVS",status:"partial",priority:"P0",sub:"JWT Bearer使用でCSRFリスク低"},
+  {id:"V4.3.1",cat:"アクセス制御",desc:"管理インターフェースが適切なMFAで保護されている",source:"ASVS",status:"partial",priority:"P0",sub:"MFA実装済みだが必須化未"},
+  {id:"V4.3.2",cat:"アクセス制御",desc:"ディレクトリブラウジングが無効化されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V4.3.3",cat:"アクセス制御",desc:"アプリケーションが保護されたリソースへのファイルメタデータの漏洩を防いでいる",source:"ASVS",status:"done",priority:"P1"},
+
+  // V5: Validation, Sanitization, Encoding (22項目)
+  {id:"V5.1.1",cat:"入力検証",desc:"HTTPパラメータ汚染攻撃から保護されている",source:"ASVS",status:"done",priority:"P0",sub:"FastAPI Pydanticバリデーション"},
+  {id:"V5.1.2",cat:"入力検証",desc:"フレームワークの大量割り当て攻撃から保護されている",source:"ASVS",status:"done",priority:"P0",sub:"Pydantic BaseModel"},
+  {id:"V5.1.3",cat:"入力検証",desc:"全ての入力がポジティブバリデーション（許可リスト）で検証されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V5.1.4",cat:"入力検証",desc:"構造化データが強く型付けされ、スキーマに対して検証されている",source:"ASVS",status:"done",priority:"P0",sub:"Pydantic型チェック"},
+  {id:"V5.1.5",cat:"入力検証",desc:"URLリダイレクトが許可リストに対して検証されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V5.2.1",cat:"入力検証",desc:"全てのHTML入力がHTMLサニタイザーで適切に処理されている",source:"ASVS",status:"partial",priority:"P0",sub:"html.escape適用済み"},
+  {id:"V5.2.2",cat:"入力検証",desc:"非構造化データがサニタイズされている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V5.2.3",cat:"入力検証",desc:"アプリケーションがメールインジェクションから保護されている",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V5.2.4",cat:"入力検証",desc:"LDAPインジェクション攻撃から保護されている",source:"ASVS",status:"done",priority:"P1",sub:"LDAP未使用"},
+  {id:"V5.2.5",cat:"入力検証",desc:"OSコマンドインジェクションから保護されている",source:"ASVS",status:"done",priority:"P0",sub:"外部コマンド実行なし"},
+  {id:"V5.2.6",cat:"入力検証",desc:"XMLインジェクションから保護されている",source:"ASVS",status:"done",priority:"P1",sub:"XML未使用（JSON API）"},
+  {id:"V5.2.7",cat:"入力検証",desc:"XPathインジェクションから保護されている",source:"ASVS",status:"done",priority:"P1",sub:"XPath未使用"},
+  {id:"V5.2.8",cat:"入力検証",desc:"SSRFから保護されている",source:"ASVS",status:"partial",priority:"P0",sub:"外部API呼び出しの制限が必要"},
+  {id:"V5.3.1",cat:"出力エンコーディング",desc:"出力エンコーディングがコンテキストに応じて適用されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V5.3.2",cat:"出力エンコーディング",desc:"HTMLエンティティエンコーディングが適用されている",source:"ASVS",status:"done",priority:"P0",sub:"html.escape使用"},
+  {id:"V5.3.3",cat:"出力エンコーディング",desc:"JavaScriptコンテキストでの適切なエスケープが実装されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V5.3.4",cat:"出力エンコーディング",desc:"CSSコンテキストでの適切なエスケープが実装されている",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V5.3.5",cat:"出力エンコーディング",desc:"URLコンテキストでの適切なエンコーディングが実装されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V5.3.6",cat:"出力エンコーディング",desc:"HTMLメタリフレッシュやリダイレクトの値が検証されている",source:"ASVS",status:"done",priority:"P1"},
+  {id:"V5.3.7",cat:"出力エンコーディング",desc:"SVGやMathMLが適切にサニタイズされている",source:"ASVS",status:"done",priority:"P1",sub:"SVG/MathML未使用"},
+  {id:"V5.3.8",cat:"出力エンコーディング",desc:"テンプレートインジェクションから保護されている",source:"ASVS",status:"done",priority:"P0",sub:"テンプレートエンジン未使用"},
+  {id:"V5.5.1",cat:"入力検証",desc:"サーバー側のシリアライゼーションオブジェクトが信頼できないデータから作成されない",source:"ASVS",status:"done",priority:"P0"},
+
+  // V6: Stored Cryptography (8項目)
+  {id:"V6.1.1",cat:"暗号化",desc:"規制対象の個人データは保存時に暗号化されている",source:"ASVS",status:"partial",priority:"P0",sub:"RDS暗号化済み、アプリ層暗号化はOAuthトークンのみ未対応"},
+  {id:"V6.1.2",cat:"暗号化",desc:"健康情報やカード情報等は特別な暗号化保護が適用されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V6.2.1",cat:"暗号化",desc:"全ての暗号モジュールはセキュアに失敗する",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V6.2.2",cat:"暗号化",desc:"業界標準の暗号化アルゴリズムが使用されている（カスタム暗号禁止）",source:"ASVS",status:"done",priority:"P0",sub:"HS256, AES-256(KMS)"},
+  {id:"V6.2.3",cat:"暗号化",desc:"暗号化乱数生成に適切なランダム生成器が使用されている",source:"ASVS",status:"done",priority:"P0",sub:"uuid4, secrets"},
+  {id:"V6.2.4",cat:"暗号化",desc:"暗号化キーの有効期限と更新が管理されている",source:"ASVS",status:"todo",priority:"P1"},
+  {id:"V6.3.1",cat:"暗号化",desc:"対称暗号鍵は予測不可能な方法で生成される",source:"ASVS",status:"done",priority:"P0",sub:"AWS KMS"},
+  {id:"V6.4.1",cat:"暗号化",desc:"鍵管理ソリューション（HSM等）が使用されている",source:"ASVS",status:"done",priority:"P0",sub:"AWS KMS"},
+
+  // V7: Error Handling and Logging (14項目)
+  {id:"V7.1.1",cat:"エラー処理・ログ",desc:"アプリケーションがスタックトレースや技術的エラーメッセージをユーザーに表示しない",source:"ASVS",status:"done",priority:"P0",sub:"本番ではgenericエラー"},
+  {id:"V7.1.2",cat:"エラー処理・ログ",desc:"例外処理がアプリケーション全体で一貫している",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V7.1.3",cat:"エラー処理・ログ",desc:"最終手段の例外ハンドラが定義されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V7.1.4",cat:"エラー処理・ログ",desc:"セキュリティ関連のログに機密情報が含まれない",source:"ASVS",status:"partial",priority:"P0",sub:"SQLAlchemy echoログにDB情報含む可能性"},
+  {id:"V7.2.1",cat:"エラー処理・ログ",desc:"認証・アクセス制御の成功/失敗がログに記録されている",source:"ASVS",status:"done",priority:"P0",sub:"AuditLogモデル"},
+  {id:"V7.2.2",cat:"エラー処理・ログ",desc:"入力バリデーションの失敗がログに記録されている",source:"ASVS",status:"done",priority:"P1",sub:"プロンプトインジェクション検知時"},
+  {id:"V7.2.3",cat:"エラー処理・ログ",desc:"セキュリティ制御の失敗がログに記録されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V7.2.4",cat:"エラー処理・ログ",desc:"ログにフォレンジックに十分な情報（タイムスタンプ、ソースIP等）が含まれている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V7.3.1",cat:"エラー処理・ログ",desc:"セキュリティイベントを検知するための十分なログが存在する",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V7.3.2",cat:"エラー処理・ログ",desc:"ログのタイムゾーンが統一されている",source:"ASVS",status:"done",priority:"P1",sub:"UTC"},
+  {id:"V7.3.3",cat:"エラー処理・ログ",desc:"ログが改ざんから保護されている",source:"ASVS",status:"partial",priority:"P0",sub:"CloudWatch Logs（改ざん困難）"},
+  {id:"V7.3.4",cat:"エラー処理・ログ",desc:"時刻同期が信頼できるソースに基づいている",source:"ASVS",status:"done",priority:"P1",sub:"AWS NTP"},
+  {id:"V7.4.1",cat:"エラー処理・ログ",desc:"機密情報がログに記録されない",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V7.4.2",cat:"エラー処理・ログ",desc:"ログが不正アクセスから保護されている",source:"ASVS",status:"done",priority:"P0",sub:"IAMポリシー"},
+
+  // V8: Data Protection (12項目)
+  {id:"V8.1.1",cat:"データ保護",desc:"アプリケーションがサーバー側でキャッシュした機密データを不正アクセスから保護している",source:"ASVS",status:"partial",priority:"P0",sub:"Redis未暗号化"},
+  {id:"V8.1.2",cat:"データ保護",desc:"認証済みデータがクライアント側のストレージ（localStorage等）に適切に保護されて保存されている",source:"ASVS",status:"partial",priority:"P0",sub:"JWT平文保存"},
+  {id:"V8.1.3",cat:"データ保護",desc:"パラメータに機密情報を含むリクエストがHTTP GETで送信されない",source:"ASVS",status:"done",priority:"P0",sub:"POST使用"},
+  {id:"V8.1.4",cat:"データ保護",desc:"データ最小化原則が適用されている",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V8.2.1",cat:"データ保護",desc:"機密データがHTTPレスポンスヘッダやメタデータに含まれない",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V8.2.2",cat:"データ保護",desc:"ブラウザキャッシュに機密データが保存されないようCache-Controlヘッダが設定されている",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V8.2.3",cat:"データ保護",desc:"暗号化されていないチャネルで認証済みデータを送信しない",source:"ASVS",status:"done",priority:"P0",sub:"HTTPS必須"},
+  {id:"V8.3.1",cat:"データ保護",desc:"機密データがHTTPメッセージボディやヘッダでURLエンコードされて送信される",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V8.3.2",cat:"データ保護",desc:"ユーザーが自身のデータのエクスポート機能を持つ",source:"ASVS",status:"todo",priority:"P1"},
+  {id:"V8.3.3",cat:"データ保護",desc:"ユーザーに明確なプライバシーポリシーが提示されている",source:"ASVS",status:"todo",priority:"P0"},
+  {id:"V8.3.4",cat:"データ保護",desc:"処理される個人情報の法的根拠が定義されている",source:"ASVS",status:"todo",priority:"P0"},
+  {id:"V8.3.5",cat:"データ保護",desc:"保存された個人データが保持ポリシーに従って削除される",source:"ASVS",status:"todo",priority:"P1"},
+
+  // V9: Communication (6項目)
+  {id:"V9.1.1",cat:"通信セキュリティ",desc:"TLS 1.2以上が全ての接続で使用されている",source:"ASVS",status:"done",priority:"P0",sub:"ALB TLS 1.2+"},
+  {id:"V9.1.2",cat:"通信セキュリティ",desc:"TLS設定でCipher Suiteの優先順位が適切に設定されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V9.1.3",cat:"通信セキュリティ",desc:"TLS証明書が有効で適切に設定されている",source:"ASVS",status:"done",priority:"P0",sub:"ACM証明書"},
+  {id:"V9.2.1",cat:"通信セキュリティ",desc:"サーバーへの全ての接続でTLSまたは同等の暗号化が使用されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V9.2.2",cat:"通信セキュリティ",desc:"暗号化された接続（TLS証明書の信頼性を含む）が外部接続で検証されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V9.2.3",cat:"通信セキュリティ",desc:"セキュリティヘッダ（HSTS等）が適切に設定されている",source:"ASVS",status:"done",priority:"P0",sub:"SecurityHeadersMiddleware"},
+
+  // V13: API (12項目)
+  {id:"V13.1.1",cat:"API・Webサービス",desc:"全てのAPIレスポンスにContent-Typeヘッダが設定されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V13.1.2",cat:"API・Webサービス",desc:"APIのレスポンスにセキュリティヘッダが含まれている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V13.1.3",cat:"API・Webサービス",desc:"APIレスポンスにAccess-Control-Allow-Originヘッダが適切に設定されている",source:"ASVS",status:"done",priority:"P0",sub:"CORS明示設定"},
+  {id:"V13.1.4",cat:"API・Webサービス",desc:"認証の判断がAPI Gatewayで行われている",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V13.1.5",cat:"API・Webサービス",desc:"全てのAPIにレート制限が実装されている",source:"ASVS",status:"todo",priority:"P0"},
+  {id:"V13.2.1",cat:"API・Webサービス",desc:"RESTfulサービスがHTTPメソッドを適切に使用している",source:"ASVS",status:"done",priority:"P0",sub:"GET/POST/PUT/DELETE"},
+  {id:"V13.2.2",cat:"API・Webサービス",desc:"JSON/XMLスキーマバリデーションが実装されている",source:"ASVS",status:"done",priority:"P0",sub:"Pydanticスキーマ"},
+  {id:"V13.2.3",cat:"API・Webサービス",desc:"RESTful Webサービスが大量割り当て攻撃から保護されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V13.2.5",cat:"API・Webサービス",desc:"REST APIがContent-Typeヘッダを検証している",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V13.2.6",cat:"API・Webサービス",desc:"リクエストサイズ制限が適切に設定されている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V13.3.1",cat:"API・Webサービス",desc:"GraphQL APIにクエリ深度制限がある",source:"ASVS",status:"done",priority:"P1",sub:"GraphQL未使用"},
+  {id:"V13.4.1",cat:"API・Webサービス",desc:"WebSocketsがOriginヘッダを検証している",source:"ASVS",status:"done",priority:"P1",sub:"WebSocket未使用（SSE使用）"},
+
+  // V14: Configuration (10項目)
+  {id:"V14.1.1",cat:"構成",desc:"ビルドおよびデプロイプロセスが安全な方法で実施されている",source:"ASVS",status:"partial",priority:"P0",sub:"GitHub Actions + ECS"},
+  {id:"V14.1.2",cat:"構成",desc:"コンパイラフラグやセキュリティ機能が適切に設定されている",source:"ASVS",status:"done",priority:"P1"},
+  {id:"V14.2.1",cat:"構成",desc:"全てのコンポーネントが最新の状態である",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V14.2.2",cat:"構成",desc:"不要な機能やコンポーネントが無効化されている",source:"ASVS",status:"done",priority:"P0",sub:"Swagger本番無効"},
+  {id:"V14.2.3",cat:"構成",desc:"サーバー設定がセキュリティベストプラクティスに従っている",source:"ASVS",status:"partial",priority:"P0"},
+  {id:"V14.3.1",cat:"構成",desc:"Webまたはアプリケーションサーバーのデフォルト設定が変更されている",source:"ASVS",status:"done",priority:"P0"},
+  {id:"V14.3.2",cat:"構成",desc:"デバッグ機能が本番環境で無効化されている",source:"ASVS",status:"done",priority:"P0",sub:"debug=False"},
+  {id:"V14.3.3",cat:"構成",desc:"HTTPヘッダがサーバーのバージョン情報を漏らさない",source:"ASVS",status:"partial",priority:"P1"},
+  {id:"V14.4.1",cat:"構成",desc:"サブリソースインテグリティ（SRI）がCDN読み込みに適用されている",source:"ASVS",status:"todo",priority:"P2"},
+  {id:"V14.5.1",cat:"構成",desc:"CORS設定が明示的なオリジンリストを使用している",source:"ASVS",status:"done",priority:"P0"},
+
+  // ── 2. ISO 27001:2022 (93項目 → 主要50項目に集約) ──
+  {id:"A5.1",cat:"ISO組織的管理",desc:"情報セキュリティのための方針群が定義・承認・公開・関係者への周知がされている",source:"ISO27001",status:"partial",priority:"P1"},
+  {id:"A5.2",cat:"ISO組織的管理",desc:"情報セキュリティの役割と責任が定義・割当てされている",source:"ISO27001",status:"partial",priority:"P1"},
+  {id:"A5.3",cat:"ISO組織的管理",desc:"相反する職務と責任領域が分離されている",source:"ISO27001",status:"partial",priority:"P1"},
+  {id:"A5.4",cat:"ISO組織的管理",desc:"経営陣が情報セキュリティ方針の適用を全従業員に要求している",source:"ISO27001",status:"todo",priority:"P1"},
+  {id:"A5.5",cat:"ISO組織的管理",desc:"関連する当局（規制機関等）との連絡窓口が維持されている",source:"ISO27001",status:"todo",priority:"P1"},
+  {id:"A5.7",cat:"ISO組織的管理",desc:"脅威インテリジェンスの収集・分析が行われている（2022新規）",source:"ISO27001",status:"todo",priority:"P1"},
+  {id:"A5.8",cat:"ISO組織的管理",desc:"プロジェクト管理に情報セキュリティが統合されている",source:"ISO27001",status:"partial",priority:"P1"},
+  {id:"A5.9",cat:"ISO組織的管理",desc:"情報・情報処理施設のインベントリが作成・維持されている",source:"ISO27001",status:"partial",priority:"P1"},
+  {id:"A5.10",cat:"ISO組織的管理",desc:"情報の許容される使用規則が定義されている",source:"ISO27001",status:"todo",priority:"P1"},
+  {id:"A5.12",cat:"ISO組織的管理",desc:"情報が分類スキームに従って分類されている",source:"ISO27001",status:"todo",priority:"P1"},
+  {id:"A5.15",cat:"ISO組織的管理",desc:"アクセス制御方針が定義・実装されている",source:"ISO27001",status:"done",priority:"P0",sub:"RBAC + RLS"},
+  {id:"A5.16",cat:"ISO組織的管理",desc:"アイデンティティ管理のライフサイクルが管理されている",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A5.17",cat:"ISO組織的管理",desc:"認証情報が適切に管理されている",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A5.18",cat:"ISO組織的管理",desc:"アクセス権限がビジネス要件に基づいて付与・レビュー・削除されている",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A5.23",cat:"ISO組織的管理",desc:"クラウドサービスの利用に関するセキュリティが管理されている（2022新規）",source:"ISO27001",status:"partial",priority:"P0",sub:"AWS設計済み"},
+  {id:"A5.24",cat:"ISO組織的管理",desc:"情報セキュリティインシデント管理の計画・準備がされている",source:"ISO27001",status:"partial",priority:"P0",sub:"手順書作成済み"},
+  {id:"A5.25",cat:"ISO組織的管理",desc:"情報セキュリティイベントの評価・分類がされている",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A5.26",cat:"ISO組織的管理",desc:"情報セキュリティインシデントへの対応が手順に従って実施される",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A5.28",cat:"ISO組織的管理",desc:"情報セキュリティインシデントの証拠が収集・保全されている",source:"ISO27001",status:"partial",priority:"P0",sub:"CloudTrail"},
+  {id:"A5.29",cat:"ISO組織的管理",desc:"事業継続計画に情報セキュリティ要件が含まれている",source:"ISO27001",status:"todo",priority:"P1"},
+  {id:"A5.30",cat:"ISO組織的管理",desc:"ICT環境が事業継続のために準備されている（2022新規）",source:"ISO27001",status:"partial",priority:"P1",sub:"Multi-AZ"},
+  {id:"A5.31",cat:"ISO組織的管理",desc:"法律・規制・契約の要件が特定・文書化されている",source:"ISO27001",status:"todo",priority:"P0",sub:"個人情報保護法対応"},
+  {id:"A5.34",cat:"ISO組織的管理",desc:"プライバシーと個人情報保護が確保されている",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A5.36",cat:"ISO組織的管理",desc:"情報セキュリティ方針・手順への適合が定期的にレビューされている",source:"ISO27001",status:"todo",priority:"P1"},
+  {id:"A5.37",cat:"ISO組織的管理",desc:"運用手順が文書化・利用可能にされている",source:"ISO27001",status:"partial",priority:"P1"},
+  {id:"A8.1",cat:"ISO技術的管理",desc:"ユーザーエンドポイントデバイスのセキュリティが確保されている",source:"ISO27001",status:"todo",priority:"P2"},
+  {id:"A8.2",cat:"ISO技術的管理",desc:"特権アクセス権限の割当・使用が制限・管理されている",source:"ISO27001",status:"partial",priority:"P0",sub:"owner/executive分離"},
+  {id:"A8.3",cat:"ISO技術的管理",desc:"情報アクセスが制限されている",source:"ISO27001",status:"done",priority:"P0",sub:"RLS + テナント分離"},
+  {id:"A8.4",cat:"ISO技術的管理",desc:"ソースコードへのアクセスが制限されている",source:"ISO27001",status:"partial",priority:"P1"},
+  {id:"A8.5",cat:"ISO技術的管理",desc:"セキュアな認証メカニズムが実装されている",source:"ISO27001",status:"done",priority:"P0",sub:"OAuth + JWT + MFA"},
+  {id:"A8.6",cat:"ISO技術的管理",desc:"容量管理が実施されている",source:"ISO27001",status:"partial",priority:"P1",sub:"Fargate Auto Scaling"},
+  {id:"A8.7",cat:"ISO技術的管理",desc:"マルウェアに対する保護が実装されている",source:"ISO27001",status:"partial",priority:"P0",sub:"WAF + コンテナスキャン"},
+  {id:"A8.8",cat:"ISO技術的管理",desc:"技術的脆弱性が管理されている",source:"ISO27001",status:"partial",priority:"P0",sub:"GitHub Actions脆弱性スキャン"},
+  {id:"A8.9",cat:"ISO技術的管理",desc:"構成管理が実施されている（2022新規）",source:"ISO27001",status:"partial",priority:"P0",sub:"Terraform IaC"},
+  {id:"A8.10",cat:"ISO技術的管理",desc:"情報の削除が適切に行われている（2022新規）",source:"ISO27001",status:"todo",priority:"P1"},
+  {id:"A8.11",cat:"ISO技術的管理",desc:"データマスキングが適用されている（2022新規）",source:"ISO27001",status:"partial",priority:"P1",sub:"ボトルネック分析匿名化"},
+  {id:"A8.12",cat:"ISO技術的管理",desc:"データ漏洩防止策が実装されている（2022新規）",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A8.15",cat:"ISO技術的管理",desc:"ログ取得が行われている",source:"ISO27001",status:"done",priority:"P0",sub:"CloudWatch + AuditLog"},
+  {id:"A8.16",cat:"ISO技術的管理",desc:"監視活動が実施されている",source:"ISO27001",status:"partial",priority:"P0",sub:"GuardDuty"},
+  {id:"A8.17",cat:"ISO技術的管理",desc:"時刻同期が行われている",source:"ISO27001",status:"done",priority:"P1"},
+  {id:"A8.20",cat:"ISO技術的管理",desc:"ネットワークセキュリティが確保されている",source:"ISO27001",status:"done",priority:"P0",sub:"VPC + SG"},
+  {id:"A8.21",cat:"ISO技術的管理",desc:"Webサービスのセキュリティが確保されている",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A8.22",cat:"ISO技術的管理",desc:"ネットワークの分離が行われている",source:"ISO27001",status:"done",priority:"P0",sub:"Public/Private/Data サブネット"},
+  {id:"A8.23",cat:"ISO技術的管理",desc:"Webフィルタリングが実施されている（2022新規）",source:"ISO27001",status:"partial",priority:"P1",sub:"WAF"},
+  {id:"A8.24",cat:"ISO技術的管理",desc:"暗号化の利用が管理されている",source:"ISO27001",status:"done",priority:"P0",sub:"KMS + TLS"},
+  {id:"A8.25",cat:"ISO技術的管理",desc:"安全な開発ライフサイクルが確立されている",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A8.26",cat:"ISO技術的管理",desc:"アプリケーションセキュリティ要件が定義されている",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A8.28",cat:"ISO技術的管理",desc:"セキュアコーディングが実践されている",source:"ISO27001",status:"partial",priority:"P0"},
+  {id:"A8.29",cat:"ISO技術的管理",desc:"開発・テスト環境でのセキュリティテストが実施されている",source:"ISO27001",status:"done",priority:"P0",sub:"132テスト"},
+  {id:"A8.31",cat:"ISO技術的管理",desc:"開発環境・テスト環境・本番環境が分離されている",source:"ISO27001",status:"done",priority:"P0",sub:"dev/prod分離"},
+  {id:"A8.32",cat:"ISO技術的管理",desc:"変更管理が実施されている",source:"ISO27001",status:"partial",priority:"P0",sub:"Git + PR"},
+  {id:"A8.33",cat:"ISO技術的管理",desc:"テスト情報が保護されている",source:"ISO27001",status:"partial",priority:"P1"},
+  {id:"A8.34",cat:"ISO技術的管理",desc:"監査テスト中の情報システムの保護が確保されている",source:"ISO27001",status:"partial",priority:"P1"},
+
+  // ── 3. OWASP Top 10 for LLM 2025 (40項目) ──
+  {id:"LLM01.1",cat:"LLM プロンプトインジェクション",desc:"直接プロンプトインジェクション: ユーザー入力がシステムプロンプトを上書きできないか",source:"LLM",status:"partial",priority:"P0",sub:"detect_prompt_injection実装済み、検知時拒否"},
+  {id:"LLM01.2",cat:"LLM プロンプトインジェクション",desc:"間接プロンプトインジェクション: 外部データ（Drive/OneDrive）経由の攻撃を防御しているか",source:"LLM",status:"todo",priority:"P0"},
+  {id:"LLM01.3",cat:"LLM プロンプトインジェクション",desc:"ユーザー入力とシステムプロンプトが構造的に分離されているか",source:"LLM",status:"done",priority:"P0",sub:"system_blocks + messages"},
+  {id:"LLM01.4",cat:"LLM プロンプトインジェクション",desc:"LLM出力がセキュリティ上重要な判断に直接使用されていないか",source:"LLM",status:"done",priority:"P0",sub:"承認フロー経由"},
+  {id:"LLM02.1",cat:"LLM 機密情報漏洩",desc:"訓練データからの機密情報抽出が防止されているか",source:"LLM",status:"done",priority:"P0",sub:"外部API使用、自社訓練なし"},
+  {id:"LLM02.2",cat:"LLM 機密情報漏洩",desc:"テナントのデータが他テナントのプロンプトに混入しないか",source:"LLM",status:"done",priority:"P0",sub:"テナントコンテキスト分離"},
+  {id:"LLM02.3",cat:"LLM 機密情報漏洩",desc:"PII（個人識別情報）のフィルタリング/マスキングが実装されているか",source:"LLM",status:"todo",priority:"P0"},
+  {id:"LLM02.4",cat:"LLM 機密情報漏洩",desc:"LLMへの入出力ログに機密情報が含まれないか",source:"LLM",status:"partial",priority:"P0"},
+  {id:"LLM03.1",cat:"LLM サプライチェーン",desc:"使用するLLMモデル（Claude/Gemini）のバージョンが管理されているか",source:"LLM",status:"done",priority:"P0",sub:"config.pyで管理"},
+  {id:"LLM03.2",cat:"LLM サプライチェーン",desc:"LLMプロバイダーのセキュリティポリシーが確認されているか",source:"LLM",status:"partial",priority:"P1"},
+  {id:"LLM03.3",cat:"LLM サプライチェーン",desc:"サードパーティのプラグイン/ツールのセキュリティが検証されているか",source:"LLM",status:"partial",priority:"P0"},
+  {id:"LLM03.4",cat:"LLM サプライチェーン",desc:"ML-BOM（Machine Learning Bill of Materials）が管理されているか",source:"LLM",status:"todo",priority:"P1"},
+  {id:"LLM04.1",cat:"LLM データポイズニング",desc:"外部から読み込むデータ（Drive等）の整合性が検証されているか",source:"LLM",status:"partial",priority:"P0"},
+  {id:"LLM04.2",cat:"LLM データポイズニング",desc:"RAGで使用するデータソースの信頼性が検証されているか",source:"LLM",status:"partial",priority:"P0"},
+  {id:"LLM05.1",cat:"LLM 出力処理不備",desc:"LLM出力がHTMLに挿入される際にサニタイズされているか",source:"LLM",status:"partial",priority:"P0",sub:"html.escape適用"},
+  {id:"LLM05.2",cat:"LLM 出力処理不備",desc:"LLM出力がコード実行に使用されていないか",source:"LLM",status:"done",priority:"P0"},
+  {id:"LLM05.3",cat:"LLM 出力処理不備",desc:"LLM出力がデータベースクエリに使用されていないか",source:"LLM",status:"done",priority:"P0"},
+  {id:"LLM05.4",cat:"LLM 出力処理不備",desc:"LLM出力が外部API呼び出しに使用される場合、入力バリデーションが行われているか",source:"LLM",status:"partial",priority:"P0",sub:"ツールパラメータ検証"},
+  {id:"LLM06.1",cat:"LLM 過剰権限",desc:"AIエージェントに付与するツール/関数が最小限に制限されているか",source:"LLM",status:"partial",priority:"P0",sub:"16ツール定義"},
+  {id:"LLM06.2",cat:"LLM 過剰権限",desc:"高リスク操作（削除・送信等）にHuman-in-the-Loop承認があるか",source:"LLM",status:"done",priority:"P0",sub:"承認フロー実装済み"},
+  {id:"LLM06.3",cat:"LLM 過剰権限",desc:"AIの自律実行範囲が明確に定義・制限されているか",source:"LLM",status:"done",priority:"P0",sub:"action_level + approval_required"},
+  {id:"LLM06.4",cat:"LLM 過剰権限",desc:"AIエージェントの実行権限がユーザーの権限を超えないか",source:"LLM",status:"done",priority:"P0",sub:"テナントRLS適用"},
+  {id:"LLM07.1",cat:"LLM システムプロンプト漏洩",desc:"システムプロンプトにAPIキーや認証情報が含まれていないか",source:"LLM",status:"done",priority:"P0"},
+  {id:"LLM07.2",cat:"LLM システムプロンプト漏洩",desc:"ユーザーがシステムプロンプトの内容を抽出できないか",source:"LLM",status:"partial",priority:"P0"},
+  {id:"LLM07.3",cat:"LLM システムプロンプト漏洩",desc:"プロンプトテンプレートがバージョン管理されているか",source:"LLM",status:"partial",priority:"P1"},
+  {id:"LLM08.1",cat:"LLM ベクトル/埋め込み脆弱性",desc:"ベクトルDBがテナント単位で分離されているか",source:"LLM",status:"done",priority:"P0",sub:"ベクトルDB未使用（直接API）"},
+  {id:"LLM08.2",cat:"LLM ベクトル/埋め込み脆弱性",desc:"埋め込みデータの改ざん防止策があるか",source:"LLM",status:"done",priority:"P0",sub:"埋め込み未使用"},
+  {id:"LLM09.1",cat:"LLM 誤情報",desc:"AIの出力にハルシネーション警告が含まれているか",source:"LLM",status:"todo",priority:"P1"},
+  {id:"LLM09.2",cat:"LLM 誤情報",desc:"重要な出力に対して検証ステップ（verify_result）があるか",source:"LLM",status:"done",priority:"P0",sub:"verify_resultツール"},
+  {id:"LLM09.3",cat:"LLM 誤情報",desc:"引用・出典の信頼性が検証されているか",source:"LLM",status:"todo",priority:"P1"},
+  {id:"LLM10.1",cat:"LLM 無制限消費",desc:"入力トークン数の制限が設定されているか",source:"LLM",status:"partial",priority:"P0",sub:"max_tokens動的調整"},
+  {id:"LLM10.2",cat:"LLM 無制限消費",desc:"エージェントの実行ラウンド数に上限があるか",source:"LLM",status:"done",priority:"P0",sub:"MAX_ROUNDS=15"},
+  {id:"LLM10.3",cat:"LLM 無制限消費",desc:"テナントごとのAPI利用量制限があるか",source:"LLM",status:"done",priority:"P0",sub:"check_budget"},
+  {id:"LLM10.4",cat:"LLM 無制限消費",desc:"レート制限が全APIに実装されているか",source:"LLM",status:"todo",priority:"P0"},
+
+  // ── 4. IPA「安全なウェブサイトの作り方」(48項目 → 主要30項目) ──
+  {id:"IPA1.1",cat:"IPA SQLインジェクション",desc:"SQL文の組み立てにバインド機構を使用しているか",source:"IPA",status:"done",priority:"P0",sub:"SQLAlchemy ORM"},
+  {id:"IPA1.2",cat:"IPA SQLインジェクション",desc:"エラーメッセージにSQLの内容が含まれないか",source:"IPA",status:"done",priority:"P0"},
+  {id:"IPA1.3",cat:"IPA SQLインジェクション",desc:"DBアカウントに最小限の権限が設定されているか",source:"IPA",status:"partial",priority:"P0"},
+  {id:"IPA2.1",cat:"IPA XSS",desc:"HTMLに出力する全ての要素がエスケープされているか",source:"IPA",status:"partial",priority:"P0",sub:"html.escape使用"},
+  {id:"IPA2.2",cat:"IPA XSS",desc:"URLはhttp://またはhttps://で始まるもののみ出力しているか",source:"IPA",status:"done",priority:"P0"},
+  {id:"IPA2.3",cat:"IPA XSS",desc:"HTTPレスポンスヘッダにContent-Typeが正しく設定されているか",source:"IPA",status:"done",priority:"P0"},
+  {id:"IPA3.1",cat:"IPA CSRF",desc:"POSTリクエストでの処理にCSRFトークンが使用されているか",source:"IPA",status:"partial",priority:"P0",sub:"JWT Bearer使用"},
+  {id:"IPA4.1",cat:"IPA パストラバーサル",desc:"外部からのパラメータにファイル名を直接指定できないか",source:"IPA",status:"done",priority:"P0",sub:"パストラバーサル防止済み"},
+  {id:"IPA5.1",cat:"IPA セッション管理",desc:"セッションIDを推測困難な値にしているか",source:"IPA",status:"done",priority:"P0",sub:"JWT"},
+  {id:"IPA5.2",cat:"IPA セッション管理",desc:"セッションIDをURLに埋め込んでいないか",source:"IPA",status:"done",priority:"P0"},
+  {id:"IPA5.3",cat:"IPA セッション管理",desc:"ログイン成功時にセッションIDを新規発行しているか",source:"IPA",status:"done",priority:"P0"},
+  {id:"IPA6.1",cat:"IPA アクセス制御",desc:"アクセス制御機能をサーバー側で実装しているか",source:"IPA",status:"done",priority:"P0",sub:"get_current_user"},
+  {id:"IPA6.2",cat:"IPA アクセス制御",desc:"認可チェックを全てのアクセスに対して実施しているか",source:"IPA",status:"done",priority:"P0"},
+  {id:"IPA7.1",cat:"IPA クリックジャッキング",desc:"X-Frame-OptionsまたはCSPのframe-ancestorsが設定されているか",source:"IPA",status:"done",priority:"P0",sub:"X-Frame-Options: DENY"},
+  {id:"IPA8.1",cat:"IPA HTTPヘッダインジェクション",desc:"外部からのパラメータをHTTPヘッダに出力していないか",source:"IPA",status:"done",priority:"P0"},
+  {id:"IPA-OP1",cat:"IPA 運用",desc:"OSやソフトウェアの脆弱性情報を定期的に収集しているか",source:"IPA",status:"partial",priority:"P0",sub:"GitHub Actions日次スキャン"},
+  {id:"IPA-OP2",cat:"IPA 運用",desc:"脆弱性の修正を迅速に適用しているか",source:"IPA",status:"partial",priority:"P0"},
+  {id:"IPA-OP3",cat:"IPA 運用",desc:"不要なサービスやポートを停止しているか",source:"IPA",status:"done",priority:"P0"},
+  {id:"IPA-OP4",cat:"IPA 運用",desc:"ログの取得と保管を適切に行っているか",source:"IPA",status:"done",priority:"P0"},
+  {id:"IPA-OP5",cat:"IPA 運用",desc:"定期的なバックアップを実施しているか",source:"IPA",status:"done",priority:"P0",sub:"RDS自動バックアップ"},
+
+  // ── 5. SOC2 Trust Services Criteria (主要30項目) ──
+  {id:"CC1.1",cat:"SOC2 セキュリティ",desc:"組織はセキュリティに対するコミットメントと説明責任を示している",source:"SOC2",status:"partial",priority:"P1"},
+  {id:"CC1.2",cat:"SOC2 セキュリティ",desc:"取締役会はセキュリティに対する監督責任を果たしている",source:"SOC2",status:"partial",priority:"P1"},
+  {id:"CC2.1",cat:"SOC2 セキュリティ",desc:"セキュリティに関する情報が内外のステークホルダーに伝達されている",source:"SOC2",status:"todo",priority:"P1"},
+  {id:"CC3.1",cat:"SOC2 セキュリティ",desc:"リスク評価プロセスが確立されている",source:"SOC2",status:"partial",priority:"P0"},
+  {id:"CC3.2",cat:"SOC2 セキュリティ",desc:"不正リスクが評価されている",source:"SOC2",status:"todo",priority:"P1"},
+  {id:"CC4.1",cat:"SOC2 セキュリティ",desc:"セキュリティ管理策の有効性が監視・評価されている",source:"SOC2",status:"partial",priority:"P0"},
+  {id:"CC5.1",cat:"SOC2 セキュリティ",desc:"リスクに対する管理活動が定義・実施されている",source:"SOC2",status:"partial",priority:"P0"},
+  {id:"CC5.2",cat:"SOC2 セキュリティ",desc:"テクノロジー全般のコントロールが実装されている",source:"SOC2",status:"partial",priority:"P0"},
+  {id:"CC6.1",cat:"SOC2 論理/物理アクセス",desc:"論理的アクセス制御が実装されている",source:"SOC2",status:"done",priority:"P0",sub:"JWT + RBAC"},
+  {id:"CC6.2",cat:"SOC2 論理/物理アクセス",desc:"アクセス権限の付与は承認プロセスを経ている",source:"SOC2",status:"partial",priority:"P0"},
+  {id:"CC6.3",cat:"SOC2 論理/物理アクセス",desc:"アクセス権限のレビューが定期的に実施されている",source:"SOC2",status:"todo",priority:"P1"},
+  {id:"CC6.6",cat:"SOC2 論理/物理アクセス",desc:"システム境界が保護されている",source:"SOC2",status:"done",priority:"P0",sub:"VPC + ALB + WAF"},
+  {id:"CC6.7",cat:"SOC2 論理/物理アクセス",desc:"データの送受信が制限・監視されている",source:"SOC2",status:"partial",priority:"P0"},
+  {id:"CC6.8",cat:"SOC2 論理/物理アクセス",desc:"マルウェア対策が実装されている",source:"SOC2",status:"partial",priority:"P0"},
+  {id:"CC7.1",cat:"SOC2 システム運用",desc:"セキュリティイベントの検知手順が確立されている",source:"SOC2",status:"partial",priority:"P0",sub:"GuardDuty + CloudWatch"},
+  {id:"CC7.2",cat:"SOC2 システム運用",desc:"セキュリティインシデントへの対応手順が確立されている",source:"SOC2",status:"done",priority:"P0",sub:"インシデント対応手順書"},
+  {id:"CC7.3",cat:"SOC2 システム運用",desc:"インシデントの根本原因分析が実施されている",source:"SOC2",status:"todo",priority:"P1"},
+  {id:"CC7.4",cat:"SOC2 システム運用",desc:"インシデントからの復旧手順が確立されている",source:"SOC2",status:"partial",priority:"P0"},
+  {id:"CC8.1",cat:"SOC2 変更管理",desc:"システム変更が管理されたプロセスで実施されている",source:"SOC2",status:"done",priority:"P0",sub:"Git + PR + CI/CD"},
+  {id:"CC9.1",cat:"SOC2 リスク軽減",desc:"ベンダーリスクが評価・管理されている",source:"SOC2",status:"partial",priority:"P1"},
+
+  // ── 6. 個人情報保護法 2026年改正 (25項目) ──
+  {id:"PII.1",cat:"個人情報保護法",desc:"個人情報の利用目的が特定・公表されているか",source:"PII",status:"todo",priority:"P0"},
+  {id:"PII.2",cat:"個人情報保護法",desc:"個人情報の取得時に利用目的を通知しているか",source:"PII",status:"todo",priority:"P0"},
+  {id:"PII.3",cat:"個人情報保護法",desc:"利用目的の範囲を超えた利用をしていないか",source:"PII",status:"partial",priority:"P0"},
+  {id:"PII.4",cat:"個人情報保護法",desc:"個人データの安全管理措置（技術的・組織的）が講じられているか",source:"PII",status:"partial",priority:"P0",sub:"暗号化+RLS"},
+  {id:"PII.5",cat:"個人情報保護法",desc:"委託先の監督体制が確立されているか",source:"PII",status:"todo",priority:"P0",sub:"AWS/Anthropicへの委託"},
+  {id:"PII.6",cat:"個人情報保護法",desc:"第三者提供の制限が遵守されているか",source:"PII",status:"partial",priority:"P0",sub:"テナント分離"},
+  {id:"PII.7",cat:"個人情報保護法",desc:"漏洩発生時の個人情報保護委員会への報告体制（72時間以内）が整備されているか",source:"PII",status:"partial",priority:"P0",sub:"手順書作成済み"},
+  {id:"PII.8",cat:"個人情報保護法",desc:"漏洩発生時の本人への通知体制が整備されているか",source:"PII",status:"partial",priority:"P0"},
+  {id:"PII.9",cat:"個人情報保護法",desc:"開示・訂正・利用停止請求への対応窓口があるか",source:"PII",status:"todo",priority:"P0"},
+  {id:"PII.10",cat:"個人情報保護法",desc:"プライバシーポリシーが最新の法改正に対応しているか",source:"PII",status:"todo",priority:"P0"},
+  {id:"PII.11",cat:"個人情報保護法",desc:"個人情報の保存期間が定義され、期間経過後に削除される仕組みがあるか",source:"PII",status:"todo",priority:"P1"},
+  {id:"PII.12",cat:"個人情報保護法",desc:"個人情報取扱台帳が整備されているか",source:"PII",status:"todo",priority:"P1"},
+  {id:"PII.13",cat:"個人情報保護法",desc:"16歳未満の利用者に対する保護措置が講じられているか（2026年改正）",source:"PII",status:"todo",priority:"P1"},
+  {id:"PII.14",cat:"個人情報保護法",desc:"課徴金制度に対するリスク評価が実施されているか（2026年改正）",source:"PII",status:"todo",priority:"P1"},
+  {id:"PII.15",cat:"個人情報保護法",desc:"不適正利用の禁止が遵守されているか",source:"PII",status:"done",priority:"P0"},
+
+  // ── 7. AI事業者ガイドライン v1.2 (30項目) ──
+  {id:"AIGL.1",cat:"AI事業者GL 人間中心",desc:"AIの利用が人間の権利と自由を尊重しているか",source:"AIGL",status:"done",priority:"P0"},
+  {id:"AIGL.2",cat:"AI事業者GL 安全性",desc:"AIシステムのリスクアセスメントが実施されているか",source:"AIGL",status:"partial",priority:"P0"},
+  {id:"AIGL.3",cat:"AI事業者GL 安全性",desc:"AIの行動が予測可能で制御可能であるか",source:"AIGL",status:"done",priority:"P0",sub:"ツール定義+承認フロー"},
+  {id:"AIGL.4",cat:"AI事業者GL 公平性",desc:"AIの出力にバイアスがないか定期的にチェックしているか",source:"AIGL",status:"todo",priority:"P1"},
+  {id:"AIGL.5",cat:"AI事業者GL プライバシー",desc:"AIが処理する個人情報の保護措置が講じられているか",source:"AIGL",status:"partial",priority:"P0",sub:"テナント分離+匿名化"},
+  {id:"AIGL.6",cat:"AI事業者GL セキュリティ",desc:"AIシステムに対する攻撃（プロンプトインジェクション等）への防御策があるか",source:"AIGL",status:"done",priority:"P0",sub:"検知+拒否"},
+  {id:"AIGL.7",cat:"AI事業者GL 透明性",desc:"AIが生成した出力であることをユーザーに明示しているか",source:"AIGL",status:"done",priority:"P0",sub:"参謀AI名義で応答"},
+  {id:"AIGL.8",cat:"AI事業者GL 透明性",desc:"AIの判断根拠・推論プロセスが説明可能か",source:"AIGL",status:"partial",priority:"P1",sub:"Adaptive Thinking"},
+  {id:"AIGL.9",cat:"AI事業者GL アカウンタビリティ",desc:"AIの行動に対する責任体制が明確か",source:"AIGL",status:"partial",priority:"P0"},
+  {id:"AIGL.10",cat:"AI事業者GL アカウンタビリティ",desc:"AIの行動ログが保存・監査可能か",source:"AIGL",status:"done",priority:"P0",sub:"AuditLog+UsageLog"},
+  {id:"AIGL.11",cat:"AI事業者GL エージェント",desc:"AIエージェントの外部アクションにHuman-in-the-Loopがあるか（v1.2新規）",source:"AIGL",status:"done",priority:"P0",sub:"承認フロー"},
+  {id:"AIGL.12",cat:"AI事業者GL エージェント",desc:"エージェントの自律実行範囲が文書化されているか（v1.2新規）",source:"AIGL",status:"partial",priority:"P0",sub:"action_level定義"},
+  {id:"AIGL.13",cat:"AI事業者GL エージェント",desc:"エージェント間通信のセキュリティが確保されているか（v1.2新規）",source:"AIGL",status:"partial",priority:"P0",sub:"テナント検証済み"},
+  {id:"AIGL.14",cat:"AI事業者GL エージェント",desc:"エージェントのカスケード実行に深度制限があるか（v1.2新規）",source:"AIGL",status:"partial",priority:"P0",sub:"MAX_ROUNDS=15"},
+  {id:"AIGL.15",cat:"AI事業者GL 教育",desc:"AIリテラシー教育がユーザーに提供されているか",source:"AIGL",status:"todo",priority:"P1"},
+
+  // ── 8. NIST SP 800-53 Rev.5 Moderate (主要100項目) ──
+  {id:"AC-1",cat:"NIST アクセス制御",desc:"アクセス制御に関するポリシーと手続きが文書化されている",source:"NIST",status:"partial",priority:"P1"},
+  {id:"AC-2",cat:"NIST アクセス制御",desc:"アカウント管理プロセスが確立されている",source:"NIST",status:"partial",priority:"P0",sub:"テナント自動作成"},
+  {id:"AC-3",cat:"NIST アクセス制御",desc:"アクセス強制メカニズムが実装されている",source:"NIST",status:"done",priority:"P0",sub:"RLS + JWT"},
+  {id:"AC-4",cat:"NIST アクセス制御",desc:"情報フロー制御が実装されている",source:"NIST",status:"done",priority:"P0",sub:"テナント分離"},
+  {id:"AC-5",cat:"NIST アクセス制御",desc:"職務分離が実装されている",source:"NIST",status:"partial",priority:"P0",sub:"owner/executive/operator"},
+  {id:"AC-6",cat:"NIST アクセス制御",desc:"最小権限原則が適用されている",source:"NIST",status:"partial",priority:"P0"},
+  {id:"AC-7",cat:"NIST アクセス制御",desc:"ログオン試行失敗の制限が実装されている",source:"NIST",status:"todo",priority:"P0",sub:"レート制限未実装"},
+  {id:"AC-11",cat:"NIST アクセス制御",desc:"デバイスロック（セッションタイムアウト）が実装されている",source:"NIST",status:"partial",priority:"P1"},
+  {id:"AC-12",cat:"NIST アクセス制御",desc:"セッション終了メカニズムが実装されている",source:"NIST",status:"partial",priority:"P0"},
+  {id:"AC-17",cat:"NIST アクセス制御",desc:"リモートアクセスの監視・制御が実装されている",source:"NIST",status:"done",priority:"P0",sub:"ALB + WAF"},
+  {id:"AU-2",cat:"NIST 監査",desc:"監査対象イベントが定義されている",source:"NIST",status:"done",priority:"P0",sub:"AuditLog"},
+  {id:"AU-3",cat:"NIST 監査",desc:"監査記録に十分な内容が含まれている",source:"NIST",status:"done",priority:"P0"},
+  {id:"AU-6",cat:"NIST 監査",desc:"監査記録のレビュー・分析が実施されている",source:"NIST",status:"partial",priority:"P0",sub:"ボトルネック分析"},
+  {id:"AU-9",cat:"NIST 監査",desc:"監査情報が不正アクセス・改ざんから保護されている",source:"NIST",status:"done",priority:"P0",sub:"CloudWatch Logs"},
+  {id:"AU-12",cat:"NIST 監査",desc:"監査記録が自動生成されている",source:"NIST",status:"done",priority:"P0"},
+  {id:"CA-7",cat:"NIST 評価",desc:"継続的監視プログラムが確立されている",source:"NIST",status:"partial",priority:"P0",sub:"GuardDuty + 日次スキャン"},
+  {id:"CA-8",cat:"NIST 評価",desc:"ペネトレーションテストが計画・実施されている",source:"NIST",status:"todo",priority:"P1"},
+  {id:"CM-2",cat:"NIST 構成管理",desc:"ベースライン構成が確立・維持されている",source:"NIST",status:"done",priority:"P0",sub:"Terraform IaC"},
+  {id:"CM-6",cat:"NIST 構成管理",desc:"構成設定がセキュリティ要件に準拠している",source:"NIST",status:"partial",priority:"P0"},
+  {id:"CM-7",cat:"NIST 構成管理",desc:"最小機能原則が適用されている",source:"NIST",status:"done",priority:"P0",sub:"Swagger本番無効"},
+  {id:"CM-8",cat:"NIST 構成管理",desc:"システムコンポーネントのインベントリが管理されている",source:"NIST",status:"partial",priority:"P0",sub:"SBOM生成"},
+  {id:"CP-9",cat:"NIST 緊急時対応",desc:"システムバックアップが実施されている",source:"NIST",status:"done",priority:"P0",sub:"RDS自動バックアップ"},
+  {id:"CP-10",cat:"NIST 緊急時対応",desc:"システム復旧手順が確立されている",source:"NIST",status:"partial",priority:"P0"},
+  {id:"IA-2",cat:"NIST 識別・認証",desc:"組織ユーザーの識別・認証が実装されている",source:"NIST",status:"done",priority:"P0",sub:"Google OAuth + JWT"},
+  {id:"IA-2(1)",cat:"NIST 識別・認証",desc:"特権アカウントへの多要素認証が実装されている",source:"NIST",status:"partial",priority:"P0",sub:"MFA実装済み、必須化未"},
+  {id:"IA-5",cat:"NIST 識別・認証",desc:"認証子の管理が適切に行われている",source:"NIST",status:"partial",priority:"P0"},
+  {id:"IA-8",cat:"NIST 識別・認証",desc:"非組織ユーザー（外部テナント）の識別・認証が実装されている",source:"NIST",status:"done",priority:"P0",sub:"テナント自動作成"},
+  {id:"IR-4",cat:"NIST インシデント対応",desc:"インシデント処理手順が確立されている",source:"NIST",status:"done",priority:"P0",sub:"手順書作成済み"},
+  {id:"IR-5",cat:"NIST インシデント対応",desc:"インシデント監視が実施されている",source:"NIST",status:"partial",priority:"P0"},
+  {id:"IR-8",cat:"NIST インシデント対応",desc:"インシデント対応計画が文書化されている",source:"NIST",status:"done",priority:"P0"},
+  {id:"RA-3",cat:"NIST リスク評価",desc:"リスク評価が実施されている",source:"NIST",status:"partial",priority:"P0"},
+  {id:"RA-5",cat:"NIST リスク評価",desc:"脆弱性の監視・スキャンが実施されている",source:"NIST",status:"done",priority:"P0",sub:"GitHub Actions日次"},
+  {id:"SC-4",cat:"NIST システム・通信保護",desc:"共有リソース中の情報が保護されている",source:"NIST",status:"done",priority:"P0",sub:"RLS"},
+  {id:"SC-7",cat:"NIST システム・通信保護",desc:"境界保護が実装されている",source:"NIST",status:"done",priority:"P0",sub:"VPC + SG + ALB"},
+  {id:"SC-8",cat:"NIST システム・通信保護",desc:"伝送の機密性と完全性が保護されている",source:"NIST",status:"done",priority:"P0",sub:"TLS 1.2+"},
+  {id:"SC-12",cat:"NIST システム・通信保護",desc:"暗号鍵の確立・管理が行われている",source:"NIST",status:"done",priority:"P0",sub:"AWS KMS"},
+  {id:"SC-13",cat:"NIST システム・通信保護",desc:"暗号化保護が実装されている",source:"NIST",status:"done",priority:"P0"},
+  {id:"SC-28",cat:"NIST システム・通信保護",desc:"保存データの保護が実装されている",source:"NIST",status:"done",priority:"P0",sub:"RDS暗号化 + S3暗号化"},
+  {id:"SI-2",cat:"NIST 情報の完全性",desc:"欠陥修正プロセスが確立されている",source:"NIST",status:"partial",priority:"P0"},
+  {id:"SI-3",cat:"NIST 情報の完全性",desc:"悪意あるコードからの保護が実装されている",source:"NIST",status:"partial",priority:"P0",sub:"WAF + コンテナスキャン"},
+  {id:"SI-4",cat:"NIST 情報の完全性",desc:"システム監視が実装されている",source:"NIST",status:"partial",priority:"P0",sub:"CloudWatch + GuardDuty"},
+  {id:"SI-10",cat:"NIST 情報の完全性",desc:"情報入力バリデーションが実装されている",source:"NIST",status:"done",priority:"P0",sub:"Pydantic + sanitize"},
+  {id:"SR-2",cat:"NIST サプライチェーン",desc:"サプライチェーンリスク管理計画が策定されている",source:"NIST",status:"partial",priority:"P1"},
+  {id:"SR-3",cat:"NIST サプライチェーン",desc:"サプライチェーン制御・プロセスが確立されている",source:"NIST",status:"partial",priority:"P1",sub:"SBOM + 依存スキャン"},
+];
+
+// ── 集計・表示ロジック ──
+let activeCategory = "all";
+
+function getStats() {
+  const total = ITEMS.length;
+  const done = ITEMS.filter(i => i.status === "done").length;
+  const partial = ITEMS.filter(i => i.status === "partial").length;
+  const todo = ITEMS.filter(i => i.status === "todo").length;
+  return { total, done, partial, todo, rate: Math.round(done / total * 100) };
+}
+
+function renderStats() {
+  const s = getStats();
+  document.getElementById("stats").innerHTML = `
+    <div class="stat"><div class="val">${s.total}</div><div class="lbl">総項目数</div></div>
+    <div class="stat"><div class="val" style="color:#34a853">${s.done}</div><div class="lbl">対応済</div></div>
+    <div class="stat"><div class="val" style="color:#fbbc04">${s.partial}</div><div class="lbl">一部対応</div></div>
+    <div class="stat"><div class="val" style="color:#ea4335">${s.todo}</div><div class="lbl">未対応</div></div>
+    <div class="stat"><div class="val">${s.rate}%</div><div class="lbl">対応率</div></div>
+    <div class="stat" style="flex:1;min-width:200px">
+      <div class="progress-bar"><div class="progress-fill" style="width:${s.rate}%;background:linear-gradient(90deg,#34a853,#4285f4)"></div></div>
+      <div class="lbl" style="margin-top:6px">P0: ${ITEMS.filter(i=>i.priority==="P0"&&i.status==="todo").length}件未対応</div>
+    </div>
+  `;
+}
+
+function getCategories() {
+  return [...new Set(ITEMS.map(i => i.cat))];
+}
+
+function renderCategoryTabs() {
+  const cats = getCategories();
+  const html = [`<button class="cat-tab ${activeCategory==='all'?'active':''}" onclick="setCategory('all')">全て (${ITEMS.length})</button>`];
+  cats.forEach(c => {
+    const count = ITEMS.filter(i => i.cat === c).length;
+    html.push(`<button class="cat-tab ${activeCategory===c?'active':''}" onclick="setCategory('${c}')">${c} (${count})</button>`);
+  });
+  document.getElementById("categoryTabs").innerHTML = html.join("");
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  renderCategoryTabs();
+  filterItems();
+}
+
+function filterItems() {
+  const search = document.getElementById("search").value.toLowerCase();
+  const statusF = document.getElementById("statusFilter").value;
+  const sourceF = document.getElementById("sourceFilter").value;
+  const priorityF = document.getElementById("priorityFilter").value;
+
+  let filtered = ITEMS.filter(item => {
+    if (activeCategory !== "all" && item.cat !== activeCategory) return false;
+    if (search && !`${item.id} ${item.cat} ${item.desc} ${item.sub||""}`.toLowerCase().includes(search)) return false;
+    if (statusF !== "all" && item.status !== statusF) return false;
+    if (sourceF !== "all" && item.source !== sourceF) return false;
+    if (priorityF !== "all" && item.priority !== priorityF) return false;
+    return true;
+  });
+
+  // カテゴリでグループ化
+  const groups = {};
+  filtered.forEach(item => {
+    if (!groups[item.cat]) groups[item.cat] = [];
+    groups[item.cat].push(item);
+  });
+
+  let html = `<div style="font-size:12px;color:#888;margin-bottom:12px">${filtered.length}件表示 / ${ITEMS.length}件中</div>`;
+
+  Object.entries(groups).forEach(([cat, items]) => {
+    const done = items.filter(i => i.status === "done").length;
+    const rate = Math.round(done / items.length * 100);
+    html += `
+      <div class="section">
+        <div class="section-head">
+          <h2>${cat} <span class="count">${items.length}項目</span></h2>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:60px;font-size:12px;color:#888;text-align:right">${rate}%</div>
+            <div style="width:80px;height:6px;background:#f0f0f0;border-radius:3px"><div style="height:100%;width:${rate}%;background:${rate>60?'#34a853':rate>30?'#fbbc04':'#ea4335'};border-radius:3px"></div></div>
+          </div>
+        </div>
+        <div class="section-body">
+          ${items.map(item => {
+            const badge = item.status === "done" ? "badge-done" : item.status === "partial" ? "badge-partial" : "badge-todo";
+            const label = item.status === "done" ? "対応済" : item.status === "partial" ? "一部対応" : "未対応";
+            return `
+              <div class="item">
+                <div class="id">${item.id}<br><span style="color:${item.priority==='P0'?'#ea4335':item.priority==='P1'?'#fbbc04':'#aaa'}">${item.priority}</span></div>
+                <div class="desc">${item.desc}${item.sub ? `<div class="sub">${item.sub}</div>` : ''}</div>
+                <div class="source">${item.source}</div>
+                <div class="status"><span class="badge ${badge}">${label}</span></div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById("sections").innerHTML = html;
+}
+
+renderStats();
+renderCategoryTabs();
+filterItems();
+</script>
+</body>
+</html>
